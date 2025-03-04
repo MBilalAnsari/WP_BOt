@@ -1,5 +1,5 @@
-const { sendMessage } = require("../services/whatsappService");
-const User = require("../models/user"); // Aapke schema ka model
+import { sendMessage } from "../services/whatsappService.js";
+import User from "../models/User.js";
 
 const sendTextMessage = async (to, body , lastMessage) => {
     const data = {
@@ -51,12 +51,12 @@ const sendButtonMessage = async (phone, text, buttons , lastMessage) => {
 };
 
 // ✅ Function jo last message update karega sirf jab lastMessage ho
-const updateLastMessage = async (phone, lastMessage) => {
+const updateLastMessage = async (phoneNumber, lastMessage) => {
     try {
         if (!lastMessage) return; // Agar lastMessage nahi hai toh return kar do
 
         await User.findOneAndUpdate(
-            { phone }, // Find user by phone number
+            { phoneNumber }, // Find user by phone number
             { lastMessage }, // Update lastMessage field
             { upsert: true, new: true } // Agar user nahi mila to create kar do
         );
@@ -90,4 +90,28 @@ const sendListMessage = async (to, body, buttonText, sections, lastMessage) => {
     return response;
 };
 
-module.exports = { sendTextMessage, sendButtonMessage , sendListMessage};
+// ✅ Send Image Message Function
+const sendPhotoMessage = async (phone, imageUrl, caption = "", lastMessage = null) => {
+    const data = {
+        messaging_product: "whatsapp",
+        to: phone,
+        type: "image",
+        image: {
+            link: imageUrl
+        }
+    };
+
+    if (caption) {
+        data.image.caption = caption;
+    }
+
+    const response = await sendMessage(data);
+
+    if (lastMessage) {
+        await updateLastMessage(phone, lastMessage);
+    }
+
+    return response;
+};
+
+export {sendTextMessage , sendButtonMessage, sendListMessage , sendPhotoMessage }

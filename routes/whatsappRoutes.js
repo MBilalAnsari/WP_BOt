@@ -1,15 +1,13 @@
-    const express = require("express");
-    const { handleIncomingMessage} = require("../controllers/whatsappController");
-    const {verifyWebhook} = require("../controllers/verifyWebhook")
+import express from "express";
+import { handleIncomingMessage } from "../controllers/whatsappController.js";
+import { verifyWebhook } from "../controllers/verifyWebhook.js";
 
-    const router = express.Router();
+const router = express.Router();
 
-    // Webhook Verification Route (For GET request)
-    router.get("/webhook", verifyWebhook);
+// Webhook Verification Route (For GET request)
+router.get("/webhook", verifyWebhook);
 
-    // Handle Incoming Messages (For POST request)
-    router.post("/webhook", handleIncomingMessage);
+// Handle Incoming Messages (For POST request)
+router.post("/webhook", handleIncomingMessage);
 
-    module.exports = router;
-
-
+export default router;
