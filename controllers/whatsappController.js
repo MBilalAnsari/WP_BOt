@@ -283,14 +283,6 @@ export const handleIncomingMessage = async (req, res) => {
         await vendor.save()
     }
 
-    // let vendorFullName = vendor?.vendorFullName || "";
-    // let shopName = vendor?.shopName || "";
-    // let address = vendor?.address || "";
-    // let pinLocation = vendor?.pinLocation || "";
-    // let shopImg = vendor?.shopImg || "";
-    // let shopCategory = vendor?.shopCategory || "";
-
-
     if (!user) {
 
         user = new User({ phoneNumber, lastMessage: "", language: null, currentSearch: null, location: null });
@@ -302,9 +294,7 @@ export const handleIncomingMessage = async (req, res) => {
 
         user.language = null;
         user.currentSearch = null;
-        user.email = ""
         await user.save();
-
 
         const languageButtons = [
             { id: "eng", title: "🇬🇧 English" },
@@ -374,7 +364,17 @@ export const handleIncomingMessage = async (req, res) => {
             await sendTextMessage(phoneNumber, "Thanks! 🙌 Now, could you share your pin location so we can find options near you? 📍", "0.5");
         }
     }
+    // else if (text.startsWith("display")) { 
+    //     user.currentSearch = "search_term";
+    //     user.searchTerm = text;
+    //     await user.save();
 
+    //     const imageButtons = [
+    //         { id: "yes", title: "📸 Yes" },
+    //         { id: "no", title: "❌ No" }
+    //     ];
+    //     await sendButtonMessage(phoneNumber, "Got it! 📱 Would you like to attach a reference image to help us find the best match? 🖼️", imageButtons, "0.6");
+    // }
     else if (user.currentSearch === "search_term") {
         user.searchTerm = text;
         await user.save();
@@ -385,13 +385,13 @@ export const handleIncomingMessage = async (req, res) => {
         ];
         await sendButtonMessage(phoneNumber, "Got it! 📱 Would you like to attach a reference image to help us find the best match? 🖼️", imageButtons, "0.6");
     }
-
     else if (user.currentSearch === "location_request") {
         user.location = text;
         user.currentSearch = "radius_request";
         await user.save();
         await sendTextMessage(phoneNumber, "Great! 👍 Lastly, how far should we search? Enter the radius in kilometers (e.g., 5, 10, etc.). 📏", "0.7");
     }
+
     else if (user.currentSearch === "radius_request" && !isNaN(Number(text))) {
         const messagingProduct = req.body?.entry?.[0]?.changes?.[0]?.value?.messaging_product;
         console.log("MDG_PRODUCT", messagingProduct)
@@ -449,17 +449,7 @@ export const handleIncomingMessage = async (req, res) => {
             await sendTextMessage(phoneNumber, "Oops! Something went wrong. Please try again.", "error");
         }
     }
-    else if (text.includes("display")) {
-        user.currentSearch = "search_term";
-        user.searchTerm = text;
-        await user.save();
-
-        const imageButtons = [
-            { id: "yes", title: "📸 Yes" },
-            { id: "no", title: "❌ No" }
-        ];
-        await sendButtonMessage(phoneNumber, "Got it! 📱 Would you like to attach a reference image to help us find the best match? 🖼️", imageButtons, "0.6");
-    }
+    // 
 
     // Vendor registration flow
     else if (text && user.lastMessage.startsWith("reg_vendor_name")) {
@@ -486,10 +476,10 @@ export const handleIncomingMessage = async (req, res) => {
     } else if (user.lastMessage.startsWith("business_photo")) {
         // 📸 WhatsApp se image ID lo
         const image = messageEntry?.image?.id;
-        console.log("imageeee id" , image)
+        console.log("imageeee id", image)
         if (image) {
             const imageUrl = await uploadBusinessPhoto(phoneNumber, image); // 🔹 Cloudinary pe upload karo
-            console.log("image_URL imageeee id k baad" , imageUrl)
+            console.log("image_URL imageeee id k baad", imageUrl)
             if (imageUrl) {
                 // ✅ WhatsApp pe confirmatory message send karo
                 console.log("if ky andar imageURL")

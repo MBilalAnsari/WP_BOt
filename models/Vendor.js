@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const vendorSchema = new mongoose.Schema({
     vendorFullName:{type: String },
     shopName: { type: String, trim: true },
-    email: { type: String, unique: true }, // Vendor Login
+    email: { type: String, unique: true, sparse: true, default: null }, 
     password: { type: String, minlength: 8 },
     address: { type: String},
     phoneNumber: {
