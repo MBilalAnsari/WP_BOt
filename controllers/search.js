@@ -1,5 +1,5 @@
 import vendor from "../models/Vendor.js";
-import User from "../models/User.js";
+import User from "../models/user.js";
 
 export const search = async (req, res) => {
     const { query, latitude, longitude, radius } = req.body;

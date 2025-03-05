@@ -1,5 +1,5 @@
 import { sendMessage } from "../services/whatsappService.js";
-import User from "../models/User.js";
+import User from "../models/user.js";
 
 const sendTextMessage = async (to, body , lastMessage) => {
     const data = {
