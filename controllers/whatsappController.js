@@ -1,10 +1,9 @@
-// const User = require("../models/User");
 import User from "../models/User.js";
-import vendor from "../models/Vendor.js";
 import { sendTextMessage, sendButtonMessage, sendListMessage } from "../helper/messageHelper.js"
 import { uploadBusinessPhoto } from "../helper/uploadBusinessPhoto.js";
 import Vendor from "../models/Vendor.js";
 // import { sendMessage } from "../services/whatsappService";
+
 // const handleIncomingMessage = async (req, res) => {
 //     console.log("📥 Incoming Request:", JSON.stringify(req.body, null, 2));
 
@@ -290,6 +289,8 @@ export const handleIncomingMessage = async (req, res) => {
     // let pinLocation = vendor?.pinLocation || "";
     // let shopImg = vendor?.shopImg || "";
     // let shopCategory = vendor?.shopCategory || "";
+
+
     if (!user) {
 
         user = new User({ phoneNumber, lastMessage: "", language: null, currentSearch: null, location: null });
@@ -446,17 +447,17 @@ export const handleIncomingMessage = async (req, res) => {
             await sendTextMessage(phoneNumber, "Oops! Something went wrong. Please try again.", "error");
         }
     }
-    // else if (text.includes("display")) {
-    //     user.currentSearch = "search_term";
-    //     user.searchTerm = text;
-    //     await user.save();
+    else if (text.includes("display")) {
+        user.currentSearch = "search_term";
+        user.searchTerm = text;
+        await user.save();
 
-    //     const imageButtons = [
-    //         { id: "yes", title: "📸 Yes" },
-    //         { id: "no", title: "❌ No" }
-    //     ];
-    //     await sendButtonMessage(phoneNumber, "Got it! 📱 Would you like to attach a reference image to help us find the best match? 🖼️", imageButtons, "0.6");
-    // }
+        const imageButtons = [
+            { id: "yes", title: "📸 Yes" },
+            { id: "no", title: "❌ No" }
+        ];
+        await sendButtonMessage(phoneNumber, "Got it! 📱 Would you like to attach a reference image to help us find the best match? 🖼️", imageButtons, "0.6");
+    }
 
     // Vendor registration flow
     else if (text && user.lastMessage.startsWith("reg_vendor_name")) {
@@ -486,11 +487,11 @@ export const handleIncomingMessage = async (req, res) => {
         console.log("imageeee id" , image)
         if (image) {
             const imageUrl = await uploadBusinessPhoto(phoneNumber, image); // 🔹 Cloudinary pe upload karo
-            console.log("image_URL" , imageUrl)
+            console.log("image_URL imageeee id k baad" , imageUrl)
             if (imageUrl) {
                 // ✅ WhatsApp pe confirmatory message send karo
+                console.log("if ky andar imageURL")
                 await sendPhotoMessage(phoneNumber, imageUrl, "✅ Your business photo has been uploaded successfully! 📸");
-
                 // 📩 Database me shop image save karo
                 vendor.shopImg = imageUrl;
                 await vendor.save();
@@ -501,7 +502,7 @@ export const handleIncomingMessage = async (req, res) => {
             await sendTextMessage(phoneNumber, "❌ No image found! Please send a valid business photo.");
         }
 
-        // 🏪 Shop Category Select Karne Ka Process
+        // 🏪 Shop Category Select Karne K a Process
         const buttons = [{ id: "Others", title: "other" }];
         const shopSections = [{ title: "Select a Category", rows: shopCategory.map(shop => ({ id: shop.id, title: shop.title })) }];
         // 📩 List Message bhejna
@@ -510,8 +511,6 @@ export const handleIncomingMessage = async (req, res) => {
         // 📩 Button Message bhejna (Others Option ke liye)
         await sendButtonMessage(phoneNumber, "Button: Others (Please specify) ✍️", buttons, "Specify_Others");
     }
-
-
 
 
     res.sendStatus(200);

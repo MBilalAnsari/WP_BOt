@@ -25,7 +25,7 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   name: { type: String, trim: true }, // Name optional in WhatsApp
-//   email: { type: String, unique: true, sparse: true }, // Web users ke liye unique
+  email: { type: String, unique: true, sparse: true }, // Web users ke liye unique
   password: { type: String, minlength: 6 }, // Web users ke liye
   phoneNumber: { type: String , unique: true }, // ✅ Common field (WhatsApp + Web)
   coins: { type: Number, default: 50 }, // ✅ Users get 50 coins on registration

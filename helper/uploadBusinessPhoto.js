@@ -13,8 +13,9 @@ export const uploadBusinessPhoto = async (phoneNumber, imageId) => {
                 Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`,
             },
         });
-
+        console.log("mediaResponse uploadBussiness mein" , mediaResponse)
         const imageUrl = mediaResponse.data.url;
+        console.log("imageURL uploadBussiness const wala ")
         if (!imageUrl) {
             throw new Error("❌ Image URL not found!");
         }
