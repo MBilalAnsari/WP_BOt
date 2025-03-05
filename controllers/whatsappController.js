@@ -251,7 +251,7 @@ const shopCategory = [
 ];
 
 export const handleIncomingMessage = async (req, res) => {
-    // console.log("📥 Incoming Request:", JSON.stringify(req.body, null, 2));
+    // console.log("📥 Incoming Request:", JSON.stringify(req.body, null, 2));npm s
     // const messagingProduct = req.body?.entry?.[0]?.changes?.[0]?.value?.messaging_product;
     // console.log("MDG_PRODUCT", messagingProduct)
 
@@ -302,7 +302,9 @@ export const handleIncomingMessage = async (req, res) => {
 
         user.language = null;
         user.currentSearch = null;
+        user.email = ""
         await user.save();
+
 
         const languageButtons = [
             { id: "eng", title: "🇬🇧 English" },
