@@ -364,7 +364,7 @@ export const handleIncomingMessage = async (req, res) => {
             await sendTextMessage(phoneNumber, "Thanks! 🙌 Now, could you share your pin location so we can find options near you? 📍", "0.5");
         }
     }
-    // else if (text.startsWith("display")) { 
+    // else if (text.startsWith("display")) {
     //     user.currentSearch = "search_term";
     //     user.searchTerm = text;
     //     await user.save();
@@ -460,7 +460,7 @@ export const handleIncomingMessage = async (req, res) => {
     } else if (text && user.lastMessage.startsWith("reg_shop_name")) {
         // api hugee hasan ki implement
         vendor.shopName = text;
-        await vendor.save()
+        await vendor.save() 
         await sendTextMessage(phoneNumber, "🏠 Please enter your shop's complete address (e.g., Street name, Area, City).", "reg_adress")
     } else if (text && user.lastMessage.startsWith("reg_adress")) {
         // api hugee hasan ki implement
@@ -495,7 +495,7 @@ export const handleIncomingMessage = async (req, res) => {
         }
 
         // 🏪 Shop Category Select Karne K a Process
-        const buttons = [{ id: "Others", title: "other" }];
+        const buttons = [{ id: "go_other", title: "other" }];
         const shopSections = [{ title: "Select a Category", rows: shopCategory.map(shop => ({ id: shop.id, title: shop.title })) }];
         // 📩 List Message bhejna
         await sendListMessage(phoneNumber, "👍 Perfect! Now, choose the categories that best describe your shop. You can select multiple options by sending the numbers separated by commas (e.g., 2,4,3).", "Shopcategory", shopSections, "Shopcategory_selected");
@@ -503,10 +503,11 @@ export const handleIncomingMessage = async (req, res) => {
         // 📩 Button Message bhejna (Others Option ke liye)
         await sendButtonMessage(phoneNumber, "Button: Others (Please specify) ✍️", buttons, "Specify_Others");
     }
+ 
 
-
-    res.sendStatus(200);
+    res.sendStatus(200);     
 };
 
 
 
+ 
