@@ -2,240 +2,6 @@ import User from "../models/user.js";
 import { sendTextMessage, sendButtonMessage, sendListMessage } from "../helper/messageHelper.js"
 import { uploadBusinessPhoto } from "../helper/uploadBusinessPhoto.js";
 import Vendor from "../models/Vendor.js";
-// import { sendMessage } from "../services/whatsappService";
-
-// const handleIncomingMessage = async (req, res) => {
-//     console.log("📥 Incoming Request:", JSON.stringify(req.body, null, 2));
-
-//     const messageEntry = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-//     if (!messageEntry) return res.sendStatus(400);
-
-//     const phoneNumber = messageEntry.from;
-//     const text = messageEntry.text?.body?.trim().toLowerCase();
-//     console.log("📞 phoneNumber:", phoneNumber, "💬 Text:", text);
-
-//     let user = await User.findOne({ phoneNumber });
-//     if (!user) {
-//         user = new User({ phoneNumber, lastMessage: "", language: null, currentSearch: null, location: null });
-//         await user.save();
-//     }
-
-//     if (text === "hi") {
-//         user.language = null;
-//         user.currentSearch = null;
-//         await user.save();
-
-//         const languageButtons = [
-//             { id: "eng", title: "🇬🇧 English" },
-//             { id: "roman", title: "🇵🇰 Roman Urdu" },
-//             { id: "urdu", title: "🏴 Urdu" }
-//         ];
-//         await sendButtonMessage(phoneNumber, "Hey there! 👋 Welcome! Before we get started, please choose your preferred language. 🌍", languageButtons, "0.1");
-//     }
-
-//     else if (messageEntry?.type === "interactive" && messageEntry?.interactive?.type === "button_reply") {
-//         const buttonId = messageEntry.interactive.button_reply.id.toLowerCase();
-
-//         if (["eng", "roman", "urdu"].includes(buttonId)) {
-//             user.language = buttonId;
-//             await user.save();
-//             await sendTextMessage(phoneNumber, "✅ Great! Thanks for confirming. Now, tell me—what are you looking for today? 🔎", "0.2");
-//         }
-
-//         else if (buttonId === "yes") {
-//             user.currentSearch = "awaiting_image";
-//             await user.save();
-//             await sendTextMessage(phoneNumber, "Awesome! 🎉 Please upload the image.", "0.7");
-//         }
-
-//         else if (buttonId === "no") {
-//             const categoryButtons = [
-//                 { id: "mobile_accessories", title: "📱 Mobile Accessories" },
-//                 { id: "mobile_parts", title: "🔧 Mobile Parts" },
-//                 { id: "others", title: "🛍️ Others" }
-//             ];
-//             await sendButtonMessage(phoneNumber, "No worries! 😊 To narrow it down, please select the category that best fits your search.", categoryButtons, "0.8");
-//         }
-
-//         else if (["mobile_accessories", "mobile_parts", "others"].includes(buttonId)) {
-//             user.lastMessage = buttonId;
-//             user.currentSearch = "location_request";
-//             await user.save();
-//             await sendTextMessage(phoneNumber, "Thanks! 🙌 Now, could you share your pin location so we can find options near you? 📍", "0.5");
-//         }
-//     }
-
-//     else if (user.currentSearch === "search_term") {
-//         user.searchTerm = text;
-//         await user.save();
-
-//         const imageButtons = [
-//             { id: "yes", title: "📸 Yes" },
-//             { id: "no", title: "❌ No" }
-//         ];
-//         await sendButtonMessage(phoneNumber, "Got it! 📱 Would you like to attach a reference image to help us find the best match? 🖼️", imageButtons, "0.6");
-//     }
-
-//     else if (user.currentSearch === "location_request") {
-//         user.location = text;
-//         user.currentSearch = "radius_request";
-//         await user.save();
-//         await sendTextMessage(phoneNumber, "Great! 👍 Lastly, how far should we search? Enter the radius in kilometers (e.g., 5, 10, etc.). 📏", "0.7");
-//     }
-
-//     else if (user.currentSearch === "radius_request" && !isNaN(Number(text))) {
-//         user.currentSearch = null;
-//         user.radius = Number(text);
-//         await user.save();
-//         await sendTextMessage(phoneNumber, "Perfect! 🚀 We're on it. We’ll notify you as soon as we find the best matches. Stay tuned! 🔔", "0.8");
-//     }
-
-//     else if (text.includes("display")) {
-//         user.currentSearch = "search_term";
-//         user.searchTerm = text;
-//         await user.save();
-
-//         const imageButtons = [
-//             { id: "yes", title: "📸 Yes" },
-//             { id: "no", title: "❌ No" }
-//         ];
-//         await sendButtonMessage(phoneNumber, "Got it! 📱 Would you like to attach a reference image to help us find the best match? 🖼️", imageButtons, "0.6");
-//     }
-
-//     res.sendStatus(200);
-// };
-
-// const categories = [
-//     { id: "mobile_accessories", title: "📱 Mobile Accessories" },
-//     { id: "mobile_parts", title: "🔧 Mobile Parts" },
-//     { id: "others", title: "🛍️ Others" },
-//     { id: "special_category", title: "⭐ Special Items" } // Example, this makes it 4+ categories
-// ];
-
-// const handleIncomingMessage = async (req, res) => {
-//     // console.log("📥 Incoming Request:", JSON.stringify(req.body, null, 2));
-
-//     const messageEntry = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-//     if (!messageEntry) return res.sendStatus(400);
-
-//     const phoneNumber = messageEntry.from;
-//     const text = messageEntry.text?.body?.trim().toLowerCase();
-//     console.log("📞 phoneNumber:", phoneNumber, "💬 Text:", text);
-
-//     let user = await User.findOne({ phoneNumber });
-
-
-//     // if (!user) { 
-//     //     user = new User({ phoneNumber, lastMessage: "", language: null, currentSearch: null, location: null });
-//     //     await user.save();
-//     // }
-
-//     if (!user) { 
-//         user = new User({ phoneNumber, lastMessage: "", language: null, currentSearch: null, location: null });
-//         await user.save();
-//         const registerButton = [{id:"register", title:"Register"}];
-//         await sendButtonMessage(phoneNumber, "Please register first.", registerButton, "0.register.prompt");
-//         return res.sendStatus(200);
-//     }
-
-
-//     if (text === "hi") {
-//         user.language = null;
-//         user.currentSearch = null;
-//         await user.save();
-
-//         const languageButtons = [
-//             { id: "eng", title: "🇬🇧 English" },
-//             { id: "roman", title: "🇵🇰 Roman Urdu" },
-//             { id: "urdu", title: "🏴 Urdu" }
-//         ];
-//         await sendButtonMessage(phoneNumber, "Hey there! 👋 Welcome! Before we get started, please choose your preferred language. 🌍", languageButtons, "0.1");
-//     }
-
-
-
-//     else if (messageEntry?.type === "interactive" && (messageEntry?.interactive?.type === "button_reply" || messageEntry?.interactive?.type === "list_reply")) {
-//         let interactiveId;
-//         if (messageEntry?.interactive?.type === "button_reply") {
-//             interactiveId = messageEntry.interactive.button_reply.id.toLowerCase();
-//         } else if (messageEntry?.interactive?.type === "list_reply") {
-//             interactiveId = messageEntry.interactive.list_reply.id.toLowerCase();
-//         }
-
-//         if (["eng", "roman", "urdu"].includes(interactiveId)) {
-//             user.language = interactiveId;
-//             await user.save();
-//             await sendTextMessage(phoneNumber, "✅ Great! Thanks for confirming. Now, tell me—what are you looking for today? 🔎", "0.2");
-//         }
-
-//         else if (interactiveId === "yes") {
-//             user.currentSearch = "awaiting_image";
-//             await user.save();
-//             await sendTextMessage(phoneNumber, "Awesome! 🎉 Please upload the image.", "0.7");
-//         }
-
-//         else if (interactiveId === "no") {
-//             if (categories.length > 3) {
-//                 const categorySections = [{
-//                     title: "Select a Category",
-//                     rows: categories.map(cat => ({ id: cat.id, title: cat.title }))
-//                 }];
-//                 await sendListMessage(phoneNumber, "No worries! 😊 Choose a category:", "Categories", categorySections, "0.8");
-//             } else {
-//                 await sendButtonMessage(phoneNumber, "No worries! 😊 Choose a category:", categories, "0.8");
-//             }
-//         }
-
-//         console.log("Checking categories:", categories.some(cat => cat.id === interactiveId));
-//         if (categories.some(cat => cat.id === interactiveId)) {
-//             user.lastMessage = interactiveId;
-//             user.currentSearch = "location_request";
-//             await user.save();
-//             await sendTextMessage(phoneNumber, "Thanks! 🙌 Now, could you share your pin location so we can find options near you? 📍", "0.5");
-//         }
-
-//     }
-
-//     else if (user.currentSearch === "search_term") {
-//         user.searchTerm = text;
-//         await user.save();
-
-//         const imageButtons = [
-//             { id: "yes", title: "📸 Yes" },
-//             { id: "no", title: "❌ No" }
-//         ];
-//         await sendButtonMessage(phoneNumber, "Got it! 📱 Would you like to attach a reference image to help us find the best match? 🖼️", imageButtons, "0.6");
-//     }
-
-//     else if (user.currentSearch === "location_request") {
-//         user.location = text;
-//         user.currentSearch = "radius_request";
-//         await user.save();
-//         await sendTextMessage(phoneNumber, "Great! 👍 Lastly, how far should we search? Enter the radius in kilometers (e.g., 5, 10, etc.). 📏", "0.7");
-//     }
-
-//     else if (user.currentSearch === "radius_request" && !isNaN(Number(text))) {
-//         user.currentSearch = null;
-//         user.radius = Number(text);
-//         await user.save();
-//         await sendTextMessage(phoneNumber, "Perfect! 🚀 We're on it. We’ll notify you as soon as we find the best matches. Stay tuned! 🔔", "0.8");
-//     }
-
-//     else if (text.includes("display")) {
-//         user.currentSearch = "search_term";
-//         user.searchTerm = text;
-//         await user.save();
-
-//         const imageButtons = [
-//             { id: "yes", title: "📸 Yes" },
-//             { id: "no", title: "❌ No" }
-//         ];
-//         await sendButtonMessage(phoneNumber, "Got it! 📱 Would you like to attach a reference image to help us find the best match? 🖼️", imageButtons, "0.6");
-//     }
-
-//     res.sendStatus(200);
-// };
-
 const categories = [
     { id: "mobile_accessories", title: "📱 Mobile Accessories" },
     { id: "mobile_parts", title: "🔧 Mobile Parts" },
@@ -258,7 +24,14 @@ export const handleIncomingMessage = async (req, res) => {
 
     const messageEntry = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
     // const interactiveId = messageEntry.interactive.list_reply.id.toLowerCase();
-
+    
+    let interactiveId;
+    // if (messageEntry?.interactive?.type === "button_reply") {
+    //     interactiveId = messageEntry.interactive.button_reply.id.toLowerCase();
+    // } else if (messageEntry?.interactive?.type === "list_reply") {
+    //     interactiveId = messageEntry.interactive.list_reply.id.toLowerCase();
+    // }
+    // console.log("inteactiveid 12" , interactiveId )
     if (!messageEntry) return res.sendStatus(400);
     const { mime_type, sha256, id: imageId } = messageEntry.image || {};
     console.log("MIME Type:", mime_type);
@@ -267,6 +40,7 @@ export const handleIncomingMessage = async (req, res) => {
     const { latitude, longitude } = messageEntry?.location || {};
     console.log("Latitude:", latitude);
     console.log("Longitude:", longitude);
+    // console.log(interactiveId, "reinitilized")
 
     const phoneNumber = "+" + messageEntry.from;
     const text = messageEntry.text?.body?.trim().toLowerCase();
@@ -307,11 +81,14 @@ export const handleIncomingMessage = async (req, res) => {
     else if (messageEntry?.type === "interactive" && (messageEntry?.interactive?.type === "button_reply" || messageEntry?.interactive?.type === "list_reply")) {
 
         let interactiveId;
+        console.log("inteactiveid" , interactiveId )
         if (messageEntry?.interactive?.type === "button_reply") {
             interactiveId = messageEntry.interactive.button_reply.id.toLowerCase();
         } else if (messageEntry?.interactive?.type === "list_reply") {
             interactiveId = messageEntry.interactive.list_reply.id.toLowerCase();
         }
+        console.log("reiniailized" , interactiveId )
+
 
         if (["eng", "roman", "urdu"].includes(interactiveId)) {
             user.language = interactiveId;
@@ -363,6 +140,7 @@ export const handleIncomingMessage = async (req, res) => {
             await user.save();
             await sendTextMessage(phoneNumber, "Thanks! 🙌 Now, could you share your pin location so we can find options near you? 📍", "0.5");
         }
+        return
     }
     // else if (text.startsWith("display")) {
     //     user.currentSearch = "search_term";
@@ -460,7 +238,7 @@ export const handleIncomingMessage = async (req, res) => {
     } else if (text && user.lastMessage.startsWith("reg_shop_name")) {
         // api hugee hasan ki implement
         vendor.shopName = text;
-        await vendor.save() 
+        await vendor.save()
         await sendTextMessage(phoneNumber, "🏠 Please enter your shop's complete address (e.g., Street name, Area, City).", "reg_adress")
     } else if (text && user.lastMessage.startsWith("reg_adress")) {
         // api hugee hasan ki implement
@@ -502,12 +280,21 @@ export const handleIncomingMessage = async (req, res) => {
 
         // 📩 Button Message bhejna (Others Option ke liye)
         await sendButtonMessage(phoneNumber, "Button: Others (Please specify) ✍️", buttons, "Specify_Others");
+    } else if (user.lastMessage.startsWith("Shopcategory_selected") && messageEntry?.interactive?.type === "list_reply") {
+        if (messageEntry?.interactive?.type === "list_reply" ) {
+            interactiveId = messageEntry.interactive.list_reply.id.toLowerCase();
+        }
+        console.log("shopcategory wala" , interactiveId )
+        if (shopCategory.some(shop => shop.id === interactiveId)) {
+            vendor.shopCategory = messageEntry.interactive.list_reply.id.toLowerCase();
+            console.log("shopcategory", messageEntry.interactive.list_reply.id.toLowerCase())
+            await sendTextMessage(phoneNumber, "Shop category has been selected");
+        }
     }
- 
 
-    res.sendStatus(200);     
+
+    res.sendStatus(200);
 };
 
 
 
- 
