@@ -1,7 +1,7 @@
 import { sendMessage } from "../services/whatsappService.js";
 import User from "../models/user.js";
 
-const sendTextMessage = async (to, body , lastMessage) => {
+const sendTextMessage = async (to, body, lastMessage) => {
     const data = {
         messaging_product: "whatsapp",
         recipient_type: "individual",
@@ -11,7 +11,7 @@ const sendTextMessage = async (to, body , lastMessage) => {
     };
 
     const response = await sendMessage(data);
-    
+
     // ✅ Last message update sirf tab kare jab body ho
     if (lastMessage) {
         await updateLastMessage(to, lastMessage);
@@ -20,7 +20,7 @@ const sendTextMessage = async (to, body , lastMessage) => {
     return response;
 };
 
-const sendButtonMessage = async (phone, text, buttons , lastMessage) => {
+const sendButtonMessage = async (phone, text, buttons, lastMessage) => {
     const data = {
         messaging_product: "whatsapp",
         to: phone,
@@ -41,10 +41,10 @@ const sendButtonMessage = async (phone, text, buttons , lastMessage) => {
     };
 
     const response = await sendMessage(data);
-    
+
     // ✅ Last message update sirf tab kare jab text available ho
     if (lastMessage) {
-        await updateLastMessage(phone, lastMessage )
+        await updateLastMessage(phone, lastMessage)
     }
 
     return response;
@@ -91,7 +91,7 @@ const sendListMessage = async (to, body, buttonText, sections, lastMessage) => {
 };
 
 // ✅ Send Image Message Function
-const sendPhotoMessage = async (phone, imageUrl, caption = "", lastMessage = null) => {
+const sendPhotoMessage = async (phone, imageUrl, caption, lastMessage) => {
     const data = {
         messaging_product: "whatsapp",
         to: phone,
@@ -102,7 +102,7 @@ const sendPhotoMessage = async (phone, imageUrl, caption = "", lastMessage = nul
     };
 
     if (caption) {
-        data.image.caption = caption;
+        data.image.caption = caption || "";
     }
 
     const response = await sendMessage(data);
@@ -114,4 +114,4 @@ const sendPhotoMessage = async (phone, imageUrl, caption = "", lastMessage = nul
     return response;
 };
 
-export {sendTextMessage , sendButtonMessage, sendListMessage , sendPhotoMessage }
+export { sendTextMessage, sendButtonMessage, sendListMessage, sendPhotoMessage }

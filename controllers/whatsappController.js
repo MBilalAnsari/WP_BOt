@@ -9,6 +9,7 @@ const categories = [
     { id: "salon_beauty", title: "💇‍♂️💅 Salon & Beauty" },
     { id: "food_beverages", title: "🍔☕ Food & Beverages" }
 ]; // Example, this makes it 4+ categories
+
 const shopCategory = [
     { id: "grocery", title: "🛒 Grocery" },
     { id: "clothing", title: "👗👕 Clothing" },
@@ -18,6 +19,45 @@ const shopCategory = [
 ];
 
 export const handleIncomingMessage = async (req, res) => {
+    // try {
+    //     const messageEntry = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+    //     if (!messageEntry) {
+    //         return res.status(400).json({ message: "No message found" });
+    //     }
+
+    //     const receivedMessageId = messageEntry.id; // Unique message ID
+
+    //     // 🔥 **Prevent Duplicate Processing**
+    //     if (processedMessages.has(receivedMessageId)) {
+    //         console.log("⏩ Duplicate message detected, ignoring...");
+    //         return res.status(200).json({ message: "Duplicate message ignored" });
+    //     }
+
+    //     // ✅ Add message ID to processed list
+    //     processedMessages.add(receivedMessageId);
+    //     setTimeout(() => processedMessages.delete(receivedMessageId), 5000); // Clear after 5 sec
+
+    //     // 📩 Proceed with processing the message
+    //     console.log("📥 New Message Received:", messageEntry);
+
+    //     const interactiveId = messageEntry?.interactive?.list_reply?.id?.toLowerCase();
+        
+    //     // 🔹 **Bot should NOT reply to its own messages**
+    //     const senderPhoneNumber = messageEntry?.from;
+    //     if (senderPhoneNumber === process.env.BOT_PHONE_NUMBER) {
+    //         console.log("🤖 Bot message detected, skipping...");
+    //         return res.status(200).json({ message: "Bot message ignored" });
+    //     }
+
+    //     // 🟢 Further message processing logic here...
+        
+    //     res.status(200).json({ message: "Message processed successfully" });
+
+    // } catch (error) {
+    //     console.error("❌ Error in handleIncomingMessage:", error);
+    //     res.status(500).json({ message: "Internal Server Error" });
+    // }
+
     // console.log("📥 Incoming Request:", JSON.stringify(req.body, null, 2));npm s
     // const messagingProduct = req.body?.entry?.[0]?.changes?.[0]?.value?.messaging_product;
     // console.log("MDG_PRODUCT", messagingProduct)
@@ -28,12 +68,6 @@ export const handleIncomingMessage = async (req, res) => {
 
     let interactiveId;
     let vendornum;
-    // if (messageEntry?.interactive?.type === "button_reply") {
-    //     interactiveId = messageEntry.interactive.button_reply.id.toLowerCase();
-    // } else if (messageEntry?.interactive?.type === "list_reply") {
-    //     interactiveId = messageEntry.interactive.list_reply.id.toLowerCase();
-    // }
-    // console.log("inteactiveid 12" , interactiveId )
     if (!messageEntry) return res.sendStatus(400);
     const { mime_type, sha256, id: imageId } = messageEntry.image || {};
     console.log("MIME Type:", mime_type);
@@ -52,7 +86,7 @@ export const handleIncomingMessage = async (req, res) => {
 
     let vendor = await Vendor.findOne({ phoneNumber });
 
-    if (!vendor) {
+    if (!vendor){
         vendor = new Vendor({
             phoneNumber
         })
@@ -77,7 +111,7 @@ export const handleIncomingMessage = async (req, res) => {
             { id: "roman", title: "🇵🇰 Roman Urdu" },
             { id: "urdu", title: "🏴 Urdu" }
         ];
-        await sendButtonMessage(phoneNumber, "Hey there! 👋 Welcome! Before we get started, please choose your preferred language. 🌍", languageButtons, "0.1");
+        await sendButtonMessage(phoneNumber, "Hey there! 👋 Welcome! Before we get started, please choose your preferred language. 🌍", languageButtons);
     }
 
     else if (messageEntry?.type === "interactive" && (messageEntry?.interactive?.type === "button_reply" || messageEntry?.interactive?.type === "list_reply")) {
@@ -169,12 +203,12 @@ export const handleIncomingMessage = async (req, res) => {
                 await sendTextMessage(phoneNumber, "⚠️ Error fetching your coins. Please try again later.");
             }
         }
-        if (shopCategory.some(shop => shop.id === interactiveId)) {
+        if (shopCategory.some(shop => shop.id === interactiveId) && user.lastMessage.startsWith("Shopcategory_selected")) {
             vendor.shopCategory[0] = messageEntry.interactive.list_reply.id.toLowerCase();
             vendor.lastMessage = "cat_list_sel"
             await vendor.save()
             console.log("shopcategory", messageEntry.interactive.list_reply.id.toLowerCase())
-            await sendTextMessage(phoneNumber, "Shop category has been selected");
+            await sendTextMessage(phoneNumber, "✅ Great! Your are now registered as Vendor..!");
         }
         // ✅ Vendor ne agar "No" ka button dabaya to ye chalega
         else if (interactiveId.toLowerCase() === "yes_avl") {
@@ -233,6 +267,17 @@ export const handleIncomingMessage = async (req, res) => {
                         `Adress: ${address}\n` +
                         `Contact: ${phoneNumber}`);
                     console.log("check user coins", userFound.coins)
+                    const userResult = await User.updateOne(
+                        { phoneNumber: userFound.phoneNumber },
+                        { $set: { "tempObj.matchVendor": "", "tempObj.priceByVendor": "" } } 
+                    );
+                    console.log("tempObj fields reset", userResult);
+                    const vendorResult = await Vendor.updateOne(
+                        { phoneNumber: phoneNumber },
+                        { $set: { "tempObj.messageSendToUsers": "", "tempObj.priceSendToUsers": "" } } 
+                    );
+                    console.log("tempObj fields reset", vendorResult);
+                    
                 } else {
                     return "User has sufficient coins.";
                 }
@@ -282,47 +327,15 @@ export const handleIncomingMessage = async (req, res) => {
                 { registrationSource: String(messagingProduct) }, // Update lastMessage field
                 { upsert: true, new: true } // Agar user nahi mila to create kar do
             );
-
-            // if (!user) { // Check if user doesn't exist OR user has no name
-            // ✅ Extract Contact Information (Safely)
-
-            // const waId = contact?.wa_id ?? phoneNumber; // Fallback
-            // console.log("📞 Extracted Contact:", waId, "👤 Name:", profileName);
-
-            // ✅ Create or Update User with Name
-            // if (!user) {
-            //          new User({
-            //         phoneNumber: waId, // Save the phoneNumber number
-            //         name: profileName,  // WhatsApp name
-            //         currentSearch: null,
-            //         location: null,
-            //         radius: Number(text), // Save the radius
-            //         registrationSource: String(messagingProduct),
-            //     });
-            // }
-            // else {
-            //     user.name = profileName;
-            //     user.phoneNumber = waId;
-            //     user.radius = Number(text);
-            //     user.registrationSource = String(messagingProduct);
-            // }
-
-            // await user.save();
-
-            // console.log("✅ User Saved/Updated in MongoDB:", user);
-
-            // ✅ Send Welcome Message
             const buttons = [
                 { id: "SearchHistory", title: "Search History" },
                 { id: "Coins", title: "Coin" }
             ];
             await sendButtonMessage(phoneNumber, `🚀 Perfect! We’ll notify you as soon as we find the best matches.Welcome, ${profileName} !`, buttons, "0.8");
-            // return;  // Stop Further Execution
             const isMatchVendor = await Vendor.findOne({
                 shopCategory: { $in: user.searchCategory } // ✅ Check if any searchCategory exists in shopCategory
             });
-
-
+            // After Searching Vendor it will Appears on user panel
             if (isMatchVendor) {
                 console.log("✅ Match Found!");
                 const buttons = [
@@ -340,30 +353,7 @@ export const handleIncomingMessage = async (req, res) => {
 
                 await sendButtonMessage(vendornum, `User is searching for ${user.searchTerm} Reply if available ? `, buttons);
             }
-
-
-
-            // ✅ Koi Vendor match nahi hua to ye chalega
-            else {
-                sendTextMessage(user.phoneNumber, "⚠️ No Vendor Found");
-            }
-
-
         }
-        //     else {
-        //     // ✅ If User Already Exists and has a Name, Update Only the Radius
-        //     user.currentSearch = null;
-        //     user.radius = Number(text);
-        //     await user.save();
-        //     console.log("✅ User Updated with New Radius:", user.radius);
-
-        //     const buttons = [
-        //         { id: "SearchHistory", title: "Search History" },
-        //         { id: "Coins", title: "Coin" }
-        //     ];
-        //     await sendButtonMessage(phoneNumber, "🚀 We’ll notify you as soon as we find the best matches. Stay tuned! 🔔", buttons, "0.8");
-        //     return;
-        // }
         catch (error) {
             console.error("❌ MongoDB Save/Contact Extraction Error:", error);
             await sendTextMessage(phoneNumber, "Oops! Something went wrong. Please try again.", "error");
@@ -384,8 +374,6 @@ export const handleIncomingMessage = async (req, res) => {
         await sendButtonMessage(userPhone, "Click unlock to the price of product", buttons, "unl_price")
     }
 
-
-    // 
 
     // Vendor registration flow
     else if (text && user.lastMessage.startsWith("reg_vendor_name")) {
