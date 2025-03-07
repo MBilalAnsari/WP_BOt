@@ -441,15 +441,6 @@ export const handleIncomingMessage = async (req, res) => {
         // 📩 Button Message bhejna (Others Option ke liye)
         await sendButtonMessage(phoneNumber, "Button: Others (Please specify) ✍️", buttons, "Shopcategory_selected");
     }
-    //  else if (user.lastMessage.startsWith("Shopcategory_selected")) {
-    //     if (messageEntry?.interactive?.type === "list_reply") {
-    //         interactiveId = messageEntry.interactive.list_reply.id.toLowerCase();
-    //     }
-    //     console.log("shopcategory wala", interactiveId)
-
-    // }
-
-
     res.sendStatus(200);
 };
 
