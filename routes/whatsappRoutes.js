@@ -5,7 +5,7 @@ import { verifyWebhook } from "../controllers/verifyWebhook.js";
 const router = express.Router();
 
 // Webhook Verification Route (For GET request)
-router.get("/webhook", verifyWebhook);
+router.get("/webhook", verifyWebhook); 
 
 // Handle Incoming Messages (For POST request)
 router.post("/webhook", handleIncomingMessage);

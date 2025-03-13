@@ -16,10 +16,6 @@ const userSchema = new mongoose.Schema({
   location: { type: String }, // ✅ Stores user's selected city
   searchTerm: { type: String }, // ✅ Stores search keyword
   searchCategory: [{ type: String, trim: true }],
-  tempObj: {
-    matchVendor: {type: String},
-    priceByVendor: {type: String}
-  },
   radius: { type: Number }, // ✅ Stores search radius
   currentStep: { type: String, default: null } // ✅ Tracks registration steps (WhatsApp only)
 }, { timestamps: true });

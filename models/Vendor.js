@@ -23,10 +23,6 @@ const vendorSchema = new mongoose.Schema({
     shopCategory: [{ type: String, trim: true }],
     products: [{ type: String, trim: true }],
     lastMessage: { type: String },// FOr Vendors
-    temObj: { 
-    messageSendToUsers: { type: String }, //for chat
-    priceSendToUsers: {type : String}, //for price
-    }, 
     responseHistory: [
         {
             userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -39,11 +35,3 @@ vendorSchema.index({ pinLocation: "2dsphere" });
 const vendor = mongoose.model('Vendor', vendorSchema);
 export default vendor;
 
-// The vendor model is created with the following fields:
-// shopName: String
-// password: String
-// address: String
-// shopImg: String
-// pinLocation: { lat: Number, lng: Number }
-// shopCategory: String
-// The vendor model is exported as default.
