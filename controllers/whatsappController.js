@@ -1,10 +1,8 @@
-import { sendTextMessage, sendButtonMessage, sendListMessage } from "../helper/messageHelper.js"
-import { uploadBusinessPhoto } from "../helper/uploadBusinessPhoto.js";
-// import { searchItem } from "../utils/botHandlerFunctions/SearchTerm/searchTerm.js";
-import { searchItem } from "../utils/botHandlerFunctions/SearchTerm/SearchTerm.js";
-import { registerVendor } from "../utils/botHandlerFunctions/VendorTerm/VendorTerm.js";
-import Vendor from "../models/Vendor.js";
-import User from "../models/user.js";
+// import { sendTextMessage, sendButtonMessage, sendListMessage } from "../helper/messageHelper.js"
+// import { searchItem } from "../utils/botHandlerFunctions/SearchTerm/SearchTerm.js";
+// import { registerVendor } from "../utils/botHandlerFunctions/VendorTerm/VendorTerm.js";
+// import Vendor from "../models/Vendor.js";
+// import User from "../models/user.js";
 
 
 
