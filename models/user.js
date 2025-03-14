@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema({
   category: { type: String }, // ✅ Stores selected category
   location: { type: String }, // ✅ Stores user's selected city
   searchTerm: { type: String }, // ✅ Stores search keyword
+  pinLocation: {
+    type: { type: String, enum: ["Point"], default: "Point" },
+    coordinates: { type: [Number], default: [24.8607, 67.0011] }, // [longitude, latitude]
+},
   searchCategory: [{ type: String, trim: true }],
   radius: { type: Number }, // ✅ Stores search radius
   currentStep: { type: String, default: null } // ✅ Tracks registration steps (WhatsApp only)

@@ -1,5 +1,5 @@
 import { sendMessage } from "../services/whatsappService.js";
-import User from "../models/user.js";
+// import User from "../models/user.js";
 import Vendor from "../models/Vendor.js";
 
 const sendTextMessage = async (to, body, lastMessage) => {
@@ -10,10 +10,7 @@ const sendTextMessage = async (to, body, lastMessage) => {
         type: "text",
         text: { body }
     };
-    // console.log("⚡ sendMessage function called with data:", data);
     const response = await sendMessage(data);
-
-
 
     // ✅ Last message update sirf tab kare jab body ho
     if (lastMessage) {
@@ -60,7 +57,7 @@ const updateLastMessage = async (phoneNumber, lastMessage) => {
     try {
         if (!lastMessage) return; // Agar lastMessage nahi hai toh return kar do
 
-        await User.findOneAndUpdate(
+        await Vendor.findOneAndUpdate(
             { phoneNumber }, // Find user by phone number
             { lastMessage }, // Update lastMessage field
             { upsert: true, new: true } // Agar user nahi mila to create kar do
@@ -69,34 +66,6 @@ const updateLastMessage = async (phoneNumber, lastMessage) => {
         console.error("Error updating last message:", error.message);
     }
 };
-//  const updateLastMessage = async (phoneNumber, lastMessage) => {
-//     try {
-//         if (!lastMessage) return; // Agar lastMessage nahi hai toh return kar do
-
-//         // Pehle check karo ke yeh phoneNumber User mai hai ya Vendor mai
-//         const user = await User.findOne({ phoneNumber });
-//         const vendor = await Vendor.findOne({ phoneNumber }); 
-
-//         if (user) {
-//             await User.findOneAndUpdate(
-//                 { phoneNumber },
-//                 { lastMessage },
-//                 { upsert: true, new: true }
-//             );
-//         } else if (vendor) {
-//             await Vendor.findOneAndUpdate(
-//                 { phoneNumber },
-//                 { lastMessage },
-//                 { upsert: true, new: true }
-//             );
-//         } else {
-//             console.log("User ya Vendor nahi mila:", phoneNumber);
-//         }
-//     } catch (error) {
-//         console.error("Error updating last message:", error.message);
-//     }
-// };
-
 
 // ✅ **Send List Message**
 const sendListMessage = async (to, body, buttonText, sections, lastMessage) => {
@@ -148,3 +117,4 @@ const sendPhotoMessage = async (phone, imageUrl, caption, lastMessage) => {
 };
 
 export { sendTextMessage, sendButtonMessage, sendListMessage, sendPhotoMessage }
+ 

@@ -11,11 +11,12 @@ import vendorAuthRoutes from './routes/vendorAuthRoutes.js';
 import vendorCrudRoutes from './routes/vendorsCRUDroutes.js';
 import userRoutes from './routes/userRoutes.js';
 import whatsappRoutes from './routes/whatsappRoutes.js';
+import "./utils/cronJobHandler/cronJob.js";
 
 // Middleware
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT;
+const PORT = 9000;
 
 app.use(cors());
 app.use(express.json());
