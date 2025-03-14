@@ -1,5 +1,5 @@
 import { sendTextMessage, sendButtonMessage, sendListMessage } from "../helper/messageHelper.js"
-import { searchItem } from "../utils/botHandlerFunctions/SearchTerm/SearchTerm.js";
+import { searchItem } from "../utils/botHandlerFunctions/SearchTerm/searchTerm.js";
 import { registerVendor } from "../utils/botHandlerFunctions/VendorTerm/VendorTerm.js";
 import Vendor from "../models/Vendor.js";
 import User from "../models/user.js";
