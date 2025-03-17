@@ -361,7 +361,7 @@ export const searchItem = async (messageData) => {
         );
         console.log("khchjsdakjdhkhsdf", updatedQuery)
 
-        const vendorId = updatedQuery.vendorId;
+        const vendorId = updatedQuery?.vendorId;
         const vendor = await Vendor.findOne({ _id: vendorId });
         const vendorPhone = vendor.phoneNumber;
 
