@@ -4,11 +4,11 @@ import Vendor from "../../../models/Vendor.js";
 // import { shopCategory } from "../constants/shopCategory";
 
 const shopCategory = [
-    { id: 1, title: "Grocery" },
-    { id: 2, title: "Clothing" },
-    { id: 3, title: "Electronics" },
-    { id: 4, title: "Salon & Beauty" },
-    { id: 5, title: "Food & Beverages" }
+    { id: 1, title: "grocery" },
+    { id: 2, title: "clothing" },
+    { id: 3, title: "electronics" },
+    { id: 4, title: "salon & Beauty" },
+    { id: 5, title: "food & Beverages" }
 ];
 
 
@@ -38,8 +38,8 @@ export const registerVendor = async (messageData) => {
 
 
     if (btnReply?.toLowerCase() === "register_shop" || vlastMessage === "0.2.0") {
-            await sendTextMessage(phoneNumber, "✅ Great! Thanks for confirming. Now, let’s get you registered as a vendor. This will just take a few minutes. ⏳", "0.2.1");
-            await sendTextMessage(phoneNumber, " 📝 First, please share your full name.", "0.2.1");
+        await sendTextMessage(phoneNumber, "Great! Thanks for confirming. Now, let’s get you registered as a vendor. This will just take a few minutes. ⏳", "0.2.1");
+        await sendTextMessage(phoneNumber, "First, please share your full name.", "0.2.1");
     }
 
 
@@ -48,7 +48,7 @@ export const registerVendor = async (messageData) => {
 
         const isValidName = (text) => /^[A-Za-z\s]+$/.test(text);
         console.log("isValidName", isValidName(text))
-        
+
         if (!isValidName(text)) {
             await sendTextMessage(phoneNumber, "❌ Invalid name! Please enter a valid name with alphabets only.", "0.2.1");
             return;
@@ -56,7 +56,7 @@ export const registerVendor = async (messageData) => {
 
         vendor.vendorFullName = text;
         await vendor.save();
-        await sendTextMessage(phoneNumber, " ✅ Got it! Now, what’s the name of your shop? 🏪", "0.2.2")
+        await sendTextMessage(phoneNumber, "Got it! Now, what’s the name of your shop? 🏪", "0.2.2")
 
     }
 
@@ -90,7 +90,7 @@ export const registerVendor = async (messageData) => {
         await sendTextMessage(phoneNumber, "Great! Now, please share your shop's exact location by sending a pinned location.", "0.2.4")
     }
 
- 
+
     else if (vendor?.lastMessage === "0.2.4") {
 
         if (!location?.latitude || !location?.longitude) {
@@ -101,22 +101,22 @@ export const registerVendor = async (messageData) => {
         vendor.pinLocation.coordinates[0] = longitude;
         vendor.pinLocation.coordinates[1] = latitude;
         await vendor.save()
-        await sendTextMessage(phoneNumber, "📸 Thanks! Now, send a clear photo of your shop.", "0.2.5")
+        await sendTextMessage(phoneNumber, "Thanks! Now, send a clear photo of your shop.", "0.2.5")
     }
 
 
     else if (imageId && vlastMessage === "0.2.5") {
-        // 📸 WhatsApp se image ID lo
+        //  WhatsApp se image ID lo
         const image = imageId
         console.log("imageeee id", image)
         if (image) {
             const imageUrl = await uploadBusinessPhoto(phoneNumber, image); // 🔹 Cloudinary pe upload karo
             console.log("image_URL imageeee id k baad", imageUrl)
             if (imageUrl) {
-                // ✅ WhatsApp pe confirmatory message send karo
+                // WhatsApp pe confirmatory message send karo
                 console.log("if ky andar imageURL")
-                await sendPhotoMessage(phoneNumber, imageUrl, "✅ Your business photo has been uploaded successfully! 📸");
-                // 📩 Database me shop image save karo
+                await sendPhotoMessage(phoneNumber, imageUrl, "Your business photo has been uploaded successfully!");
+                // Database me shop image save karo
                 vendor.shopImg = imageUrl;
                 await vendor.save();
             } else {
@@ -137,7 +137,7 @@ export const registerVendor = async (messageData) => {
 
     else if (text && vlastMessage === "0.2.6") {
 
-        const idList = shopCategory.map((category) => category.id); 
+        const idList = shopCategory.map((category) => category.id);
         const isValidNumAndComma = (input) => /^[0-9,\s]+$/.test(input);
 
         if (!isValidNumAndComma(text)) {
@@ -176,7 +176,7 @@ export const registerVendor = async (messageData) => {
             `${categories}\n\n` +
             `Choose the categories that best describe your shop. You can select multiple options by sending the numbers separated by commas (e.g., 2,4,3).`;
 
-        await sendTextMessage(phoneNumber, message, "0.2.6"); 
+        await sendTextMessage(phoneNumber, message, "0.2.6");
     }
 
 

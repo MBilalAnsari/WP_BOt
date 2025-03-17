@@ -30,7 +30,7 @@ const vendorSchema = new mongoose.Schema({
             timestamp: { type: Date, default: Date.now }
         }
     ]
-});
+},{ timestamps: true });
 vendorSchema.index({ pinLocation: "2dsphere" });
 const vendor = mongoose.model('Vendor', vendorSchema);
 export default vendor;

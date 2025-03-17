@@ -58,7 +58,7 @@ const sendButtonMessage = async (phone, text, buttons, lastMessage) => {
 // ✅ Function jo last message update karega sirf jab lastMessage ho
 const updateLastMessage = async (phoneNumber, lastMessage) => {
     try {
-        if (!lastMessage) return; // Agar lastMessage nahi hai toh return kar do
+        if (!lastMessage) return; 
 
         await User.findOneAndUpdate(
             { phoneNumber }, // Find user by phone number

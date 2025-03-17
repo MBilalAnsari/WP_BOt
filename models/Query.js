@@ -6,7 +6,7 @@ const querySchema = new mongoose.Schema({
     vendorId: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor", required: true },
     product: { type: String, required: true },
     status: { type: String, enum: ["waiting", "expired", "answered"], default: "waiting" },
-    priceByVendor: { type: Number } // ✅ Vendor ka diya hua price yahan store hoga
+    priceByVendor: { type: Number }
 }, { timestamps: true });
 
 const Query = mongoose.model("Query", querySchema);

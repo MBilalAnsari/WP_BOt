@@ -77,7 +77,128 @@ export const searchItem = async (messageData) => {
 
 
 
+    // else if (lastMessage === "0.1.6" && text) {
+    //     console.log("MDG_PRODUCT", messagingProduct)
+
+    //     const isValidRadius = (input) => /^[0-9]+$/.test(input) && Number(input) > 0;
+
+    //     if (!isValidRadius(text)) {
+    //         await sendTextMessage(phoneNumber, "❌ Invalid radius! Please enter a valid number in kilometers (e.g., 5, 10, etc.).", "0.1.6");
+    //         return;
+    //     }
+
+    //     try {
+    //         const radius = text;
+
+    //         const user = await User.findOneAndUpdate(
+    //             { phoneNumber },
+    //             {
+    //                 registrationSource: String(messagingProduct),
+    //                 radius: radius
+    //             },
+    //             { upsert: true, new: true }
+    //         );
+
+    //         const userId = user._id;
+    //         const product = user.currentSearch;
+
+    //         const buttons = [
+    //             { id: "SearchHistory", title: "Search History" },
+    //             { id: "Coins", title: "Coin" }
+    //         ];
+
+    //         await sendButtonMessage(phoneNumber, `🚀 Perfect! We’ll notify you as soon as we find the best matches. Welcome, ${profileName} !`, buttons, "0.8");
+
+    //         let searchCriteria = {};
+    //         if (user?.pinLocation?.coordinates[1] && user?.pinLocation?.coordinates[0] && user?.radius) {
+    //             searchCriteria.pinLocation = {
+    //                 $near: {
+    //                     $geometry: { type: "Point", coordinates: [parseFloat(user.pinLocation.coordinates[0]), parseFloat(user.pinLocation.coordinates[1])] },
+    //                     $maxDistance: user.radius * 1000, // Convert km to meters
+    //                 },
+    //             };
+    //         }
+    //         if (user?.searchCategory) {
+    //             searchCriteria.shopCategory = { $in: user.searchCategory };
+    //         }
+
+    //         const matchVendors = await Vendor.find(searchCriteria);
+
+    //         if (matchVendors.length > 0) {
+    //             console.log("==>> Match Found!");
+
+    //             let vendorDetails = matchVendors.map(vendor => ({
+    //                 id: vendor._id,
+    //                 phoneNumber: vendor.phoneNumber,
+    //             }));
+
+    //             console.log(vendorDetails, "vendor details");
+
+    //             // Sare vendors ke queries save aur find karne ke liye promise array
+    //             const queryPromises = vendorDetails.map(async (vendor) => {
+    //                 const queryId = new Date().getTime(); // Unique ID for each query
+
+    //               const existingQuery = await Query.findOne({
+    //                     vendorId: vendor.id,
+    //                     userId: userId,
+    //                     product: product,
+    //                     status: "waiting"
+    //                 });
+    //                 if (existingQuery) {
+    //                     console.log(`Skipping duplicate query for Vendor ${vendor.id} - Product: ${product}`);
+    //                     return { vendor, pendingQueries: [existingQuery] }; // Sirf existing query return karo
+    //                 }
+    //                 const newQuery = {
+    //                     queryId,
+    //                     userId,
+    //                     vendorId: vendor.id, // Send vendor ID one by one
+    //                     product,
+    //                 };
+
+    //                 //  Query create karna
+    //                 await Query.create(newQuery);
+    //                 console.log(`==>> Query saved for Vendor ID: ${vendor.id}`);
+
+    //                 //  Query find karna
+    //                 const pendingQueries = await Query.find({ vendorId: vendor.id, status: "waiting" });
+
+    //                 return { vendor, pendingQueries }; // ==>> Return both vendor info and pending queries
+    //             });
+
+    //             // ==>> Sare queries ka result ek saath wait karna
+    //             const allPendingQueries = await Promise.all(queryPromises);
+
+    //             console.log(allPendingQueries, "queries");
+
+    //             // ==>> Ab sirf un vendors ko message send karo jinke pending queries hain
+    //             for (const { vendor, pendingQueries } of allPendingQueries) {
+    //                 if (!pendingQueries.length) {
+    //                     console.log(`==>> No pending queries for Vendor ID: ${vendor.id}`);
+    //                     continue;
+    //                 }
+
+    //                 for (const query of pendingQueries) {
+    //                     const button = [
+    //                         { id: `Yes_avl|${query.queryId}`, title: "Yes" },
+    //                         { id: "No_avl", title: "No" }
+    //                     ];
+
+    //                     await sendButtonMessage(
+    //                         vendor?.phoneNumber,
+    //                         `User is searching for ${query.product}. Do you have it available?`,
+    //                         button,
+    //                         `0.1.7_${query.queryId}`
+    //                     );
+    //                 }
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.error("==>> MongoDB Save/Contact Extraction Error:", error);
+    //         await sendTextMessage(phoneNumber, "Oops! Something went wrong. Please try again.", "error");
+    //     }
+    // }
     else if (lastMessage === "0.1.6" && text) {
+
         console.log("MDG_PRODUCT", messagingProduct)
 
         const isValidRadius = (input) => /^[0-9]+$/.test(input) && Number(input) > 0;
@@ -86,7 +207,7 @@ export const searchItem = async (messageData) => {
             await sendTextMessage(phoneNumber, "❌ Invalid radius! Please enter a valid number in kilometers (e.g., 5, 10, etc.).", "0.1.6");
             return;
         }
-
+        console.log("MDG_PRODUCT", messagingProduct)
         try {
             const radius = text;
 
@@ -123,7 +244,7 @@ export const searchItem = async (messageData) => {
             }
 
             const matchVendors = await Vendor.find(searchCriteria);
-
+            console.log("matchVendors", matchVendors)
             if (matchVendors.length > 0) {
                 console.log("==>> Match Found!");
 
@@ -137,8 +258,7 @@ export const searchItem = async (messageData) => {
                 // Sare vendors ke queries save aur find karne ke liye promise array
                 const queryPromises = vendorDetails.map(async (vendor) => {
                     const queryId = new Date().getTime(); // Unique ID for each query
-
-                  const existingQuery = await Query.findOne({
+                    const existingQuery = await Query.findOne({
                         vendorId: vendor.id,
                         userId: userId,
                         product: product,
@@ -198,8 +318,7 @@ export const searchItem = async (messageData) => {
         }
     }
 
-
-   else if (btnReply?.toLowerCase().startsWith("yes_")) {
+    else if (btnReply?.toLowerCase().startsWith("yes_")) {
         console.log("==>> Vendor ne 'Yes' select kiya!");
         const [yes, queryId] = btnReply.split("|")
         console.log(queryId, "agayi beta")
