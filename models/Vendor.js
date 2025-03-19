@@ -6,6 +6,7 @@ const vendorSchema = new mongoose.Schema({
     email: { type: String, unique: true, sparse: true },
     password: { type: String, minlength: 8 },
     address: { type: String },
+    language: { type: String, default: "en" },
     phoneNumber: {
         type: String,
         required: true,
@@ -30,7 +31,7 @@ const vendorSchema = new mongoose.Schema({
             timestamp: { type: Date, default: Date.now }
         }
     ]
-},{ timestamps: true });
+}, { timestamps: true });
 vendorSchema.index({ pinLocation: "2dsphere" });
 const vendor = mongoose.model('Vendor', vendorSchema);
 export default vendor;

@@ -13,3 +13,4 @@ cron.schedule("*/1 * * * *", async () => {
     );
     console.log(`Expired queries updated: ${result.modifiedCount}`);
 });
+

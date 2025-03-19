@@ -30,7 +30,7 @@ const sendButtonMessage = async (phone, text, buttons, lastMessage) => {
         to: phone,
         type: "interactive",
         interactive: {
-            type: "button",
+            type: "button", 
             body: { text },
             action: {
                 buttons: buttons.map(btn => ({

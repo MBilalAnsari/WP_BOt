@@ -1,37 +1,28 @@
 import { sendTextMessage, sendButtonMessage, sendListMessage } from "../helper/messageHelper.js"
-// import { sendButtonMessage, sendListMessage, sendTextMessage } from "../helper/messageHelperForVendor.js"
+import { sendVendorTextMessage, sendVendorButtonMessage, sendVendorListMessage } from "../utils/botHandlerFunctions/vendorTerm/vendorTerm.js";
 import { searchItem } from "../utils/botHandlerFunctions/searchTerm/searchTerm.js"
 import { registerVendor } from "../utils/botHandlerFunctions/vendorTerm/vendorTerm.js"
+import { shopCategory } from "../utils/botHandlerFunctions/vendorTerm/vendorTerm.js";
 import Vendor from "../models/Vendor.js";
 import User from "../models/user.js";
+import { vendorManageAccount } from "../utils/botHandlerFunctions/vendorManageAccount/regVendor.js";
+import lang from "../utils/languagesJson/languages.json" assert { type: "json" };
 
 
-// const sendVendorButtonMessage = sendButtonMessage;
-// const sendVendorListMessage = sendListMessage;
-// const sendVendorTextMessage = sendTextMessage;
 
-const profile_overview = [
-    { id: "full_name", title: "👤 Full Name" },
-    { id: "shop_name", title: "🏪 Shop Name" },
-    { id: "shop_address", title: "🏠 Shop Address" },
-    { id: "shop_category", title: "📦 Shop Category" },
-    { id: "shop_location", title: "📍 Shop Location" },
-    { id: "shop_image", title: "🖼️ Shop Image" }
-]
+
+
+
 
 export const handleIncomingMessage = async (req, res) => {
 
-    // res.status(200).send(true);
+    res.status(200).send(true);
+
     // console.log("Request Body:", JSON.stringify(req.body, null, 2));
 
     const messageEntry = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
     // console.log("📩 Incoming Message Entry:", messageEntry);
 
-    // // ==> for mult over respond handling
-    // if (!messageEntry || (messageEntry?.from && !messageEntry?.text?.body && !messageEntry.text?.body && !messageEntry.image && !messageEntry?.interactive?.list_reply?.id && !messageEntry?.interactive?.button_reply?.id)) {
-    //     console.log("Invalid or empty message received.");
-    //     return res.sendStatus(200);
-    // }
     const phoneNumber = `+${messageEntry?.from || ""}`;
 
     const value = req.body?.entry?.[0]?.changes?.[0]?.value; // 👈 Common path extract kar liya
@@ -41,6 +32,8 @@ export const handleIncomingMessage = async (req, res) => {
 
     let user = await User.findOne({ phoneNumber });
     let vendor = await Vendor.findOne({ phoneNumber })
+    let s_u_ln= user?.language || "en";
+    let s_v_ln = vendor?.language || "en";
 
     const messageData = {
         vlastMessage: vendor?.lastMessage || "",
@@ -61,6 +54,10 @@ export const handleIncomingMessage = async (req, res) => {
         messagingProduct: value?.messaging_product || "",
         profileName: contact?.profile?.name ?? "Unknown User",
         user: user || null,
+        vendor: vendor || null,
+        s_u_ln: s_u_ln,
+        s_v_ln: s_v_ln,
+        lang: lang
     };
 
     console.log("📩 Processed Message PhoneNumber:", messageData.phoneNumber);
@@ -70,81 +67,74 @@ export const handleIncomingMessage = async (req, res) => {
     console.log("📩 Processed Message interactiveID BTN:", messageData.btnReply);
     console.log("📩 Processed Message interactiveID LIST:", messageData.listReply);
 
+    
     let text = messageData.text;
-    // let phoneNumber = messageData.phoneNumber;
+    let vlastMessage = messageData.vlastMessage;
+
+  
+
     if (text === "hi") {
-        const languageButtons = [
-            { id: "eng", title: "🇬🇧 English" },
-            { id: "roman", title: "🇵🇰 Roman Urdu" },
-            { id: "urdu", title: "🏴 Urdu" }
+        const s_ln = user?.language || vendor?.language || "en";
+        console.log("s_lnnnnnn", s_ln);
+        
+        if (!lang[s_ln]) {
+            console.error(`Invalid language: ${s_ln}, falling back to 'en'`);
+        }
+    
+        const selLang = lang[s_ln] || lang["en"]; // Fallback to 'en' if undefined
+    
+        const langBtn = [
+            { id: "en", title:selLang.ENG},
+            { id: "rm", title:selLang.ROM},
+            { id: "ur", title:selLang.URDU}
         ];
-        await sendButtonMessage(phoneNumber, "Hey there! 👋 Welcome! Before we get started, please choose your preferred language. 🌍", languageButtons, "");
+    
+        await sendButtonMessage(phoneNumber, lang[s_ln].WLCM, langBtn);
     }
-
-
+    
+    
+    
     let btnReply = messageData.btnReply;
-
-    if (["eng", "roman", "urdu"].includes(btnReply)) {
+    if (["en", "rm", "ur"].includes(btnReply)) {
+        console.log("agyaaaaaaaaaa" , btnReply) 
         if (vendor) {
+            vendor.language = btnReply;
+            await vendor.save();
+            const s_v_ln = vendor.language;
             const mainMenuButtons = [
-                { id: "search_item", title: "🔍 Search Item" },
-                { id: "manage_account", title: "🤝 Manage account" }
+                { id: "search_item", title: lang[s_v_ln].SRCH },
+                { id: "manage_account", title: lang[s_v_ln].ACC }
             ];
-            await sendButtonMessage(phoneNumber, "Language selected! Please choose an option below:", mainMenuButtons);
-
+            await sendVendorButtonMessage(phoneNumber, lang[s_v_ln].LAN_SEL, mainMenuButtons, "0.5");
         } else {
+            vendor = new Vendor({ phoneNumber, language: btnReply });
+            await vendor.save();
+            const s_v_ln = vendor.language;
             const mainMenuButtons = [
-                { id: "search_item", title: "🔍 Search Item" },
-                { id: "register_shop", title: "🤝 Register Shop" }
+                { id: "search_item", title: lang[s_v_ln].SRCH },
+                { id: "register_shop", title: lang[s_v_ln].REG_SHOP }
             ];
-            await sendButtonMessage(phoneNumber, "Language selected! Please choose an option below:", mainMenuButtons);
+            await sendButtonMessage(phoneNumber, lang[s_v_ln].LAN_SEL, mainMenuButtons);
         }
     }
+    
 
-    // manage acc for vendor
-    if (["manage_account"].includes(btnReply)) {
-        const manageAccountButtons = [
-            { id: "profile_overview", title: "🌍 Profile Overview" },
-            { id: "Update_profile", title: "📝 Update Profile" }
-        ];
-        await sendButtonMessage(phoneNumber, "Please choose an option below:", manageAccountButtons);
+
+
+
+
+    // For User Manage Account
+    if ((["manage_account"].includes(btnReply) && vlastMessage?.startsWith("0.5")) || vlastMessage?.startsWith("0.5")) {
+        console.log("manageAccount wali condition TRUE");
+        await vendorManageAccount(messageData);
+        console.log("Update Vendor Last Message:", vendor?.lastMessage);
     }
-
-    // profile overview for vendor
-    if (["profile_overview"].includes(btnReply)) {
-        const pinCord_one = vendor?.pinLocation?.coordinates[0];
-        const pinCord_two = vendor?.pinLocation?.coordinates[1];
-        const messgae = `Profile Overview:\n` +
-            `Registration Date: ${vendor?.createdAt ? new Date(vendor.createdAt).toLocaleString() : "N/A"}\n` +
-            `Shop Name: ${vendor?.shopName} \n` +
-            `Shop Address: ${vendor?.address} \n` +
-            `Shop Category: ${vendor?.shopCategory} \n` +
-            `Shop Location: https://maps.google.com/maps?q=${pinCord_two},${pinCord_one}\n`;
-        await sendTextMessage(phoneNumber, messgae);
-    }
-
-
-    // update profile for vendor
-    if (["update_profile"].includes(btnReply)) {
-        const profOverViewList = [{
-            title: "Select Category",
-            rows: profile_overview.map(update => ({ id: update.id, title: update.title }))
-        }];
-        await sendListMessage(phoneNumber, "Please select the field you want to update", "Select Category", profOverViewList);
-    }
-    if (["full_name"].includes(btnReply)) {
-        await sendTextMessage(phoneNumber, "Please enter your full name");
-    }
-
-
-
     // For User Search Term
     if (["search_item"].includes(btnReply) || user?.lastMessage?.startsWith("0.1")) {
         console.log("searchItem wali condition TRUE");
         await searchItem(messageData);
         console.log("📩 Updated User Last Message:", user?.lastMessage);
     }
-
     // For Reg Shop Term
     if (["register_shop"].includes(btnReply) || (vendor?.lastMessage?.startsWith("0.2"))) {
         console.log("Reg Vendor condition TRUE");
@@ -153,6 +143,7 @@ export const handleIncomingMessage = async (req, res) => {
     }
 
 }
+
 
 
 

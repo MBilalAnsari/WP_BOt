@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
   coins: { type: Number, default: 50 }, 
   registrationSource: { type: String, enum: ["whatsapp", "web"] },
   searchHistory: [{ query: String, timestamp: { type: Date, default: Date.now } }],
-  language: { type: String, default: "en_US" }, 
+  language: { type: String, default: "en" }, 
   currentSearch: { type: String },
   lastMessage: { type: String },
   locationPage: { type: Number }, 

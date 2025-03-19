@@ -56,7 +56,7 @@ export const openShop = async (req, res) => {
         if (userFound.coins < 1) {
             return res.status(400).json({ message: "Insufficient coins" });
         }
-
+ 
         userFound.coins -= 1;
         await userFound.save();
 
