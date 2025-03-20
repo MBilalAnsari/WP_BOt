@@ -74,10 +74,9 @@ export const searchItem = async (messageData) => {
         const Product = text;
         user.currentSearch = Product;
         // user.searchHistory.push({ query: text });
-        const queryId = new Date().getTime(); // Unique ID for each query
+        const queryId = new Date().getTime() ; // Unique ID for each query
 
         const existingQuery = await Query.findOne({
-            vendorId: null,
             userId: user._id,
             product: Product,
             status: "waiting"
@@ -89,7 +88,7 @@ export const searchItem = async (messageData) => {
         const newQuery = {
             queryId,
             userId: user._id,
-            vendorId: null, // Send vendor ID one by one
+ // Send vendor ID one by one
             product: Product,
             status: "waiting"
         };
@@ -500,10 +499,10 @@ export const searchItem = async (messageData) => {
                         { new: true, upsert: true }
                     );
 
-                    if (existingQuery) {
-                        console.log(`Skipping duplicate query for Vendor ${vendor.id} - Product: ${user.currentSearch}`);
-                        return { vendor, pendingQueries: [existingQuery] }; // Sirf existing query return karo
-                    }
+                    // if (existingQuery) {
+                    //     console.log(`Skipping duplicate query for Vendor ${vendor.id} - Product: ${user.currentSearch}`);
+                    //     return { vendor, pendingQueries: [existingQuery] }; // Sirf existing query return karo
+                    // }
                     //     const newQuery = {
                     //         queryId,
                     //         userId,

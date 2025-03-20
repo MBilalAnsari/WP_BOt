@@ -6,7 +6,8 @@ import { shopCategory } from "../utils/botHandlerFunctions/vendorTerm/vendorTerm
 import Vendor from "../models/Vendor.js";
 import User from "../models/user.js";
 import { vendorManageAccount } from "../utils/botHandlerFunctions/vendorManageAccount/regVendor.js";
-import lang from "../utils/languagesJson/languages.json" assert { type: "json" };
+import langData from "../utils/languagesJson/languages.json" with { type: "json" };
+const lang = langData;
 import Query from "../models/Query.js";
 
 
