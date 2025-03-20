@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
 const querySchema = new mongoose.Schema({
-    queryId: {type: String, unique: true},
+    queryId: { type: String, require: true, unique: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    vendorId: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor"},
+    vendorId: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
     product: { type: String, required: true },
     status: { type: String, enum: ["waiting", "expired", "answered"], default: "waiting" },
     priceByVendor: { type: Number }, // Vendor ka diya hua price yahan store hoga

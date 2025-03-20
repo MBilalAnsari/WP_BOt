@@ -2,8 +2,8 @@ import { sendButtonMessage, sendListMessage, sendTextMessage } from "../../../he
 import User from "../../../models/user.js";
 import Vendor from "../../../models/Vendor.js";
 import Query from "../../../models/Query.js";
-const { ObjectId } = mongoose.Types;
 import mongoose from "mongoose";
+const { ObjectId } = mongoose.Types;
 
 const categories = [
     { id: "grocery", title: "🛒 Grocery" },
@@ -499,10 +499,10 @@ export const searchItem = async (messageData) => {
                         { new: true, upsert: true }
                     );
 
-                    // if (existingQuery) {
-                    //     console.log(`Skipping duplicate query for Vendor ${vendor.id} - Product: ${user.currentSearch}`);
-                    //     return { vendor, pendingQueries: [existingQuery] }; // Sirf existing query return karo
-                    // }
+                    if (existingQuery) {
+                        console.log(`Skipping duplicate query for Vendor ${vendor.id} - Product: ${user.currentSearch}`);
+                        return { vendor, pendingQueries: [existingQuery] }; // Sirf existing query return karo
+                    }
                     //     const newQuery = {
                     //         queryId,
                     //         userId,
