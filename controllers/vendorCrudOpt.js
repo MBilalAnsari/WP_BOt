@@ -57,7 +57,7 @@ export const vendorLogin = async (req, res) => {
 export const vendorSignUp = async (req, res) => {
     const { email, password, phoneNumber, address, shopName, shopCategory, pinLocation, products } = req.body;
     console.log(req.body);
-    if (!email || !password || !phoneNumber || !address || !shopName || !shopCategory || !pinLocation || !products) {
+    if (!email || !password || !phoneNumber || !address || !shopName || !shopCategory || !pinLocation) {
         return res.status(400).json({ message: "All fileds are required" });
     }
     try {

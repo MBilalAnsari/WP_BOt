@@ -18,7 +18,7 @@ export const shopCategory = [
 ];
 
 
-export const registerVendor = async (messageData) => {
+export const registerVendor = async (messageData, userLanguages) => {
 
     const {
         phoneNumber,
@@ -41,6 +41,7 @@ export const registerVendor = async (messageData) => {
     const { imageId, sha256, mimeType } = image;
 
     console.log("registerVendor")
+    console.log(s_v_ln, "lagngdsf")
 
 
     let vendor = await Vendor.findOne({ phoneNumber });
@@ -170,49 +171,37 @@ export const registerVendor = async (messageData) => {
     }
 
 
-    // else if (imageId && vlastMessage === "0.2.5") {
-    //     //  WhatsApp se image ID lo
-    //     const image = imageId
-    //     console.log("imageeee id", image)
-    //     if (image) {
-    //         const imageUrl = await uploadBusinessPhoto(phoneNumber, image); // 🔹 Cloudinary pe upload karo
-    //         console.log("image_URL imageeee id k baad", imageUrl)
-    //         if (imageUrl) {
-    //             // WhatsApp pe confirmatory message send karo
-    //             console.log("if ky andar imageURL")
-    //             await sendPhotoMessage(phoneNumber, imageUrl, "Your business photo has been uploaded successfully!");
-    //             // Database me shop image save karo
-    //             vendor.shopImg = imageUrl;
-    //             await vendor.save();
-    //         } else {
-    //             await sendTextMessage(phoneNumber, "❌ Failed to upload your business photo. Please try again.");
-    //         }
-    //     } else {
-    //         await sendTextMessage(phoneNumber, "❌ No image found! Please send a valid business photo.");
-    //     }
-    //     const categories = shopCategory.map((category) => `${category.id}. ${category.title}`).join("\n");
-
-    //     const message = `Great! Now, please select the category that best describes your shop.\n\n` +
-    //         `${categories}\n\n` +
-    //         `Choose the categories that best describe your shop. You can select multiple options by sending the numbers separated by commas (e.g., 2,4,3).`;
-
-    //     await sendTextMessage(phoneNumber, message, "0.2.6");
-    // }
-
     else if (imageId && vlastMessage === "0.2.5") {
-        const imageUrl = await uploadBusinessPhoto(phoneNumber, imageId);
-        if (imageUrl) {
-            await sendPhotoMessage(phoneNumber, imageUrl, lang[s_v_ln].UPLOAD_SUCCESS_PHOTO);
-            vendor.shopImg = imageUrl;
-            await vendor.save();
+        //  WhatsApp se image ID lo
+        const image = imageId
+        console.log("imageeee id", image)
+        if (image) {
+            const imageUrl = await uploadBusinessPhoto(phoneNumber, image); // 🔹 Cloudinary pe upload karo
+            console.log("image_URL imageeee id k baad", imageUrl)
+            if (imageUrl) {
+                // WhatsApp pe confirmatory message send karo
+                console.log("if ky andar imageURL")
+                await sendPhotoMessage(phoneNumber, imageUrl, lang[s_v_ln].UPLOAD_SUCCESS_PHOTO);
+                // Database me shop image save karo
+                vendor.shopImg = imageUrl;
+                await vendor.save();
+            } else {
+                await sendTextMessage(phoneNumber, lang[s_v_ln].FAILED_UPLOAD_PHOTO);
+            }
         } else {
-            await sendTextMessage(phoneNumber, lang[s_v_ln].FAILED_UPLOAD_PHOTO);
-            return;
+            await sendTextMessage(phoneNumber, "❌ No image found! Please send a valid business photo.");
         }
-
         const categories = shopCategory.map((category) => `${category.id}. ${category.title}`).join("\n");
-        await sendTextMessage(phoneNumber, lang[s_v_ln].SELECT_CATEGORY.replace("{categories}", categories), "0.2.6");
+
+        // const message = `Great! Now, please select the category that best describes your shop.\n\n` +
+        //     `${categories}\n\n` +
+        //     `Choose the categories that best describe your shop. You can select multiple options by sending the numbers separated by commas (e.g., 2,4,3).`;
+
+        const message = lang[s_v_ln].SELECT_CATEGORY.replace("{categories}", categories);
+        await sendTextMessage(phoneNumber, message, "0.2.6");
     }
+
+    
 
     // else if (text && vlastMessage === "0.2.6") {
 
@@ -285,6 +274,6 @@ export const registerVendor = async (messageData) => {
     // }
     else if (vlastMessage === "0.2.7" && btnReply?.toLowerCase() === "confirm") {
         await vendor.save();
-        await sendTextMessage(phoneNumber, lang[s_v_ln].SHOP_REGISTERED, "0.2.8");
+        await sendTextMessage(phoneNumber, lang[s_v_ln].SHOP_REGISTER_SUCCESS, "0.2.8");
     }
 }

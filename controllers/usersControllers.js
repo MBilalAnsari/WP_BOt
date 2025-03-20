@@ -1,4 +1,5 @@
 import User from '../models/user.js';
+import Query from '../models/Query.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -24,15 +25,49 @@ export const getUserSearchHistory = async (req, res) => {
     res.status(500).json({ message: "Error retrieving search history" });
   }
 }
+// user queries
+export const getQueries = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id, "queries");
+    const query = await Query.find({ userId: user._id, status: "answered" });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ queries: query });
+  }
+catch (error) {
+    res.status(500).json({ message: "Error retrieving user queries" });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // user signup 
 export const userSignUp = async (req, res) => {
   const { name, email, password, phoneNumber, registrationSource } = req.body;
   
   console.log(name, email, password, phoneNumber, registrationSource);
   
-  if (!name || !email || !password || !phoneNumber || !registrationSource) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
+  // if (!email || !password) {
+  //   return res.status(400).json({ message: "All fields are required" });
+  // }
 
   const hashPassword = await bcrypt.hash(password, 10);
 
@@ -63,7 +98,6 @@ export const userSignUp = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 // user login
 export const userLogin = async (req, res) => {
   const { emailOrPhone, password } = req.body;

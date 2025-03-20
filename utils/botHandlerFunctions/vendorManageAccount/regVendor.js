@@ -42,7 +42,7 @@ export const vendorManageAccount = async (messageData) => {
     //     ];
     //     await sendVendorButtonMessage(phoneNumber, "Please choose an option below:", manageAccountButtons, "0.5.1");
     // }
-    if (["manage_account"].includes(btnReply) && vlastMessage?.startsWith("0.5")) {
+    if (["manage_acc_vendor"].includes(btnReply) && vlastMessage?.startsWith("0.5")) {
         const manageAccountButtons = [
             { id: "profile_overview", title: lang[s_v_ln].PROFILE_OVERVIEW },
             { id: "update_profile", title: lang[s_v_ln].UPDATE_PROFILE }
@@ -65,8 +65,8 @@ export const vendorManageAccount = async (messageData) => {
     //     await sendVendorTextMessage(phoneNumber, messgae, "0.5.1");
     // }
 
-      // profile overview for vendor
-      if (["profile_overview"].includes(btnReply) && vlastMessage?.startsWith("0.5.1")) {
+    // profile overview for vendor
+    if ((["profile_overview"].includes(btnReply) && vlastMessage?.startsWith("0.5.1")) || (["profile_overview"].includes(btnReply) && vlastMessage?.startsWith("0.5.2"))) {
         const pinCord_one = vendor?.pinLocation?.coordinates[0];
         const pinCord_two = vendor?.pinLocation?.coordinates[1];
         const message = lang[s_v_ln].PROFILE_DETAILS
@@ -90,7 +90,7 @@ export const vendorManageAccount = async (messageData) => {
     //     await sendVendorListMessage(phoneNumber, "Please select the field you want to update", "Select Category", profOverViewList, "0.5.2");
     // }
 
-  
+
     // update profile for vendor
     if (["update_profile"].includes(btnReply) && vlastMessage?.startsWith("0.5.1")) {
         const profOverViewList = [{
@@ -329,17 +329,6 @@ export const vendorManageAccount = async (messageData) => {
 
         await sendVendorTextMessage(phoneNumber, lang[s_v_ln].SHOP_LOCATION_UPDATED.replace("{latitude}", vendor.pinLocation.coordinates[1]).replace("{longitude}", vendor.pinLocation.coordinates[0]), "0.5.2");
     }
-
-
-
-
-
-
-
-
-
-
-    // 
 
 
 
