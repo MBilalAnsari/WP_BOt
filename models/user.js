@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   language: { type: String, default: "en" }, 
   currentSearch: { type: String },
   lastMessage: { type: String },
+  queryMess: { type: String },
   locationPage: { type: Number }, 
   category: { type: String }, 
   location: { type: String }, 

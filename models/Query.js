@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const querySchema = new mongoose.Schema({
-    queryId: { type: String, require: true },
+    queryId: { type: String, require: true , required : true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     vendorId: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
     product: { type: String, required: true },
@@ -10,6 +10,8 @@ const querySchema = new mongoose.Schema({
     contactViewed: { type: Boolean, default: false },
     priceViewed: { type: Boolean, default: false },
     detailsViewed: { type: Boolean, default: false },
+    messageSent: { type: Boolean, default: false }, //  Kya message bheja gaya?
+    sentAt: { type: Date }, // Message bhejne ka time
 }, { timestamps: true });
 
 const Query = mongoose.model("Query", querySchema);

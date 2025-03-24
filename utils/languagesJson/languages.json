@@ -108,7 +108,8 @@
         "USER_EMAIL_CHANGE": "Update Email",
         "PROMPT_NEW_NAME": "Please enter your new name:",
         "PROMPT_NEW_PHONE": "Please enter your new phone number:",
-        "PROMPT_NEW_EMAIL": "Please enter your new email:"
+        "PROMPT_NEW_EMAIL": "Please enter your new email:",
+        "QUERY_RESPONSE": "You queried for these items but didn’t respond:\n\n{queriesList}"
     },
     "ur": {
         "SRCH": "آئٹم تلاش کریں",
@@ -220,7 +221,8 @@
         "USER_EMAIL_CHANGE": "ای میل اپڈیٹ کریں",
         "PROMPT_NEW_NAME": "براہ کرم اپنا نیا نام درج کریں:",
         "PROMPT_NEW_PHONE": "براہ کرم اپنا نیا فون نمبر درج کریں:",
-        "PROMPT_NEW_EMAIL": "براہ کرم اپنی نئی ای میل درج کریں:"
+        "PROMPT_NEW_EMAIL": "براہ کرم اپنی نئی ای میل درج کریں:",
+        "QUERY_RESPONSE": "آپ نے ان آئٹمز کی کوئری کی تھی لیکن جواب نہیں دیا:\n\n{queriesList}"
     },
     "rm": {
         "SRCH": "Item dhundein",
@@ -332,6 +334,7 @@
         "USER_EMAIL_CHANGE": "Email update karein",
         "PROMPT_NEW_NAME": "Apna naya naam likhein:",
         "PROMPT_NEW_PHONE": "Apna naya phone number likhein:",
-        "PROMPT_NEW_EMAIL": "Apni nayi email likhein:"
+        "PROMPT_NEW_EMAIL": "Apni nayi email likhein:",
+        "QUERY_RESPONSE": "Tumne in items ki query ki thi lekin jawab nahi diya:\n\n{queriesList}"
     }
 }

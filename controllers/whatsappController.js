@@ -62,18 +62,16 @@ export const handleIncomingMessage = async (req, res) => {
         lang: lang
     };
 
-    console.log("📩 Processed Message PhoneNumber:", messageData.phoneNumber);
-    console.log("📩 Processed Message text:", messageData.text);
-    console.log("📩 Processed Message image:", messageData.image);
-    console.log("📩 Processed Message location:", messageData.location);
-    console.log("📩 Processed Message interactiveID BTN:", messageData.btnReply);
-    console.log("📩 Processed Message interactiveID LIST:", messageData.listReply);
+    // console.log("📩 Processed Message PhoneNumber:", messageData.phoneNumber);
+    // console.log("📩 Processed Message text:", messageData.text);
+    // console.log("📩 Processed Message image:", messageData.image);
+    // console.log("📩 Processed Message location:", messageData.location);
+    // console.log("📩 Processed Message interactiveID BTN:", messageData.btnReply);
+    // console.log("📩 Processed Message interactiveID LIST:", messageData.listReply);
 
 
     let text = messageData.text;
     let vlastMessage = messageData.vlastMessage;
-
-
 
     if (text === "hi") {
         const s_ln = user?.language || vendor?.language || "en"; // Get saved language
@@ -83,19 +81,20 @@ export const handleIncomingMessage = async (req, res) => {
             console.error(`Invalid language: ${s_ln}, falling back to 'en'`);
         }
 
-        const selLang = lang[s_ln] || lang["en"]; // Fallback to 'en' if undefined
+        const selLang = lang[s_ln] || lang["en"]; 
 
-        // Generate Language Buttons with Selected Indication
         const langBtn = [
             { id: "en", title: s_ln === "en" ? `${selLang.ENG}` : selLang.ENG },
             { id: "rm", title: s_ln === "rm" ? `${selLang.ROM}` : selLang.ROM },
             { id: "ur", title: s_ln === "ur" ? `${selLang.URDU}` : selLang.URDU }
         ];
 
+        // 🛠 Reset Last Message for User and Vendor
+        await User.updateOne({ phoneNumber }, { lastMessage: null });
+        await Vendor.updateOne({ phoneNumber }, { lastMessage: null });
+
         await sendButtonMessage(phoneNumber, selLang.WLCM, langBtn);
     }
-
-
 
 
     let btnReply = messageData.btnReply;
@@ -173,105 +172,7 @@ export const handleIncomingMessage = async (req, res) => {
         }
     }
 
-    // For User and vendor both Manage Account Term
-    // if (["account_settings_both"].includes(btnReply)) {
-    //     console.log("manage_acc_user wali condition TRUE");
-    //     const manageAccountButtons = [
-    //         { id: "manage_acc_user", title: "User account" },
-    //         { id: "manage_acc_vendor", title: "Vendor account" },
-    //     ];
-    //     await sendButtonMessage(phoneNumber, "🔧 Select account type:", manageAccountButtons);
-    // }
-    // // For User Manage Account Term
-    // if (["account_settings_user"].includes(btnReply)) {
-    //     console.log("manage_acc_user wali condition TRUE");
-    //     const manageAccountButtons = [
-    //         { id: "user_overview", title: "Overview" },
-    //         { id: "user_account_update", title: "Account update" },
-    //         { id: "user_history", title: "History" },
-    //     ];
-    //     await sendButtonMessage(phoneNumber, "🔧 Select an option:", manageAccountButtons);
-    // }
-    // // For user overview
-    // if (["user_overview"].includes(btnReply)) {
-    //     console.log("user_overview wali condition TRUE");
-    //     if (user) {
-    //         await sendTextMessage(phoneNumber, `👤 User Overview
-    //     \n👤 Name: ${messageData.profileName}
-    //     \n📱 Phone: ${user.phoneNumber}
-    //     \n💰 Coins: ${user.coins}`);
-    //     }
-    // }
-    // // For user history update
-    // if (["user_history"].includes(String(btnReply))) {
-    //     if (user) {
-    //         // Page number extract karna
-    //         const page = user.historyPage || 1; // Agar pehle set nahi toh default 1
-    //         const limit = 5; // 5 queries per page
-    //         const skip = (page - 1) * limit;
-
-    //         const query = await Query.find({ userId: user._id })
-    //             .sort({ createdAt: -1 })
-    //             .skip(skip) // Pagination ke liye skip karna
-    //             .limit(limit + 1); // 5 se ek zyada query fetch karna taake check ho sake
-
-    //         console.log(query);
-
-    //         if (query.length > 0) {
-    //             // Sirf pehli 5 queries show karni hain
-    //             const displayQueries = query.slice(0, limit);
-
-    //             for (const q of displayQueries) {
-    //                 await sendTextMessage(
-    //                     phoneNumber,
-    //                     `🔍 Search History
-    //                 \n📅 Date: ${q.createdAt}
-    //                 \n🔍 Product: ${q.product}
-    //                 \n💰 Price: ${q.priceByVendor}`
-    //                 );
-    //             }
-
-    //             // Agar aur queries baqi hain, toh "See More" button bhejein
-    //             if (query.length > limit) {
-    //                 const buttons = [
-    //                     { id: "SeeMore", title: "See More" },
-    //                 ];
-
-    //                 await sendButtonMessage(phoneNumber, "🔍 Load more search history?", buttons, "see_more");
-
-    //                 // User ka historyPage update karein
-    //                 await User.updateOne({ _id: user._id }, { $set: { historyPage: page + 1 } });
-    //             }
-    //         } else {
-    //             await sendTextMessage(phoneNumber, "No search history found");
-    //         }
-    //     } else {
-    //         await sendTextMessage(phoneNumber, "User not found or no search history.");
-    //     }
-    // }
-    // // for user account update
-    // if (["user_account_update"].includes(btnReply)) {
-    //     const accountUpdateButtons = [
-    //         { id: "user_name_update", title: "Update Name" },
-    //         { id: "user_phone_update", title: "Update Phone" },
-    //         { id: "user_email_update", title: "Update Email" },
-    //     ];
-    //     await sendButtonMessage(phoneNumber, "Select an option:", accountUpdateButtons);
-    // }
-    // // for user name update
-    // if (["user_name_update"].includes(btnReply)) {
-    //     await sendTextMessage(phoneNumber, "Please enter your new name:");
-    // }
-    // // for user phone update
-    // if (["user_phone_update"].includes(btnReply)) {
-    //     await sendTextMessage(phoneNumber, "Please enter your new phone number:");
-    // }
-    // // for user email update
-    // if (["user_email_update"].includes(btnReply)) {
-    //     await sendTextMessage(phoneNumber, "Please enter your new email:");
-    // }
-
-    const selectedLang = user?.language || vendor?.language || "en";  
+    const selectedLang = user?.language || vendor?.language || "en";
 
     if (["account_settings_both"].includes(btnReply)) {
         console.log("account_settings_both wali condition TRUE");
@@ -327,7 +228,7 @@ export const handleIncomingMessage = async (req, res) => {
                         `🔍 ${lang[selectedLang].USER_ACC_HISTORY}
                     \n📅 Date: ${q.createdAt}
                     \n🔍 Product: ${q.product}
-                    \n💰 Price: ${q.priceByVendor  || "Vendor not replied"}`
+                    \n💰 Price: ${q.priceByVendor || "Vendor not replied"}`
                     );
                 }
 
@@ -372,27 +273,6 @@ export const handleIncomingMessage = async (req, res) => {
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     // For User Manage Account
     if ((["manage_acc_vendor"].includes(btnReply) && vlastMessage === "0.5") || vlastMessage?.startsWith("0.5")) {
         console.log("manageAccount wali condition TRUE");
@@ -400,7 +280,7 @@ export const handleIncomingMessage = async (req, res) => {
         console.log("Update Vendor Last Message:", vendor?.lastMessage);
     }
     // For User Search Term
-    if (["search_item"].includes(btnReply) || user?.lastMessage?.startsWith("0.1") || vendor?.lastMessage?.startsWith("0.1.7_")) {
+    if (["search_item"].includes(btnReply) || user?.lastMessage?.startsWith("0.1") || vendor?.lastMessage?.startsWith("0.1.7_") || user?.queryMess?.startsWith("0.1")) {
         console.log("searchItem wali condition TRUE");
         await searchItem(messageData);
         console.log("📩 Updated User Last Message:", user?.lastMessage);

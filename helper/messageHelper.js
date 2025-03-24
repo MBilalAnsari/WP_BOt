@@ -2,7 +2,7 @@ import { sendMessage } from "../services/whatsappService.js";
 import User from "../models/user.js";
 import Vendor from "../models/Vendor.js";
 
-const sendTextMessage = async (to, body, lastMessage) => {
+const sendTextMessage = async (to, body, lastMessage, queryMess) => {
     const data = {
         messaging_product: "whatsapp",
         recipient_type: "individual",
@@ -10,21 +10,16 @@ const sendTextMessage = async (to, body, lastMessage) => {
         type: "text",
         text: { body }
     };
-    // console.log("⚡ sendMessage function called with data:", data);
+
     const response = await sendMessage(data);
 
-
-
-    // ✅ Last message update sirf tab kare jab body ho
-    if (lastMessage) {
-        await updateLastMessage(to, lastMessage);
-    }
+    if (lastMessage) await updateLastMessage(to, lastMessage);
+    if (queryMess) await updateQueryLastMessage(to, queryMess);
 
     return response;
 };
 
-const sendButtonMessage = async (phone, text, buttons, lastMessage) => {
-
+const sendButtonMessage = async (phone, text, buttons, lastMessage, queryMess) => {
     const data = {
         messaging_product: "whatsapp",
         to: phone,
@@ -43,63 +38,16 @@ const sendButtonMessage = async (phone, text, buttons, lastMessage) => {
             }
         }
     };
-    // console.log( "dataaaaaaa",data) 
 
     const response = await sendMessage(data);
 
-    // ✅ Last message update sirf tab kare jab text available ho
-    if (lastMessage) {
-        await updateLastMessage(phone, lastMessage)
-    }
+    if (lastMessage) await updateLastMessage(phone, lastMessage);
+    if (queryMess) await updateQueryLastMessage(phone, queryMess);
 
     return response;
 };
 
-// ✅ Function jo last message update karega sirf jab lastMessage ho
-const updateLastMessage = async (phoneNumber, lastMessage) => {
-    try {
-        if (!lastMessage) return; 
-
-        await User.findOneAndUpdate(
-            { phoneNumber }, // Find user by phone number
-            { lastMessage }, // Update lastMessage field
-            { upsert: true, new: true } // Agar user nahi mila to create kar do
-        );
-    } catch (error) {
-        console.error("Error updating last message:", error.message);
-    }
-};
-//  const updateLastMessage = async (phoneNumber, lastMessage) => {
-//     try {
-//         if (!lastMessage) return; // Agar lastMessage nahi hai toh return kar do
-
-//         // Pehle check karo ke yeh phoneNumber User mai hai ya Vendor mai
-//         const user = await User.findOne({ phoneNumber });
-//         const vendor = await Vendor.findOne({ phoneNumber }); 
-
-//         if (user) {
-//             await User.findOneAndUpdate(
-//                 { phoneNumber },
-//                 { lastMessage },
-//                 { upsert: true, new: true }
-//             );
-//         } else if (vendor) {
-//             await Vendor.findOneAndUpdate(
-//                 { phoneNumber },
-//                 { lastMessage },
-//                 { upsert: true, new: true }
-//             );
-//         } else {
-//             console.log("User ya Vendor nahi mila:", phoneNumber);
-//         }
-//     } catch (error) {
-//         console.error("Error updating last message:", error.message);
-//     }
-// };
-
-
-// ✅ **Send List Message**
-const sendListMessage = async (to, body, buttonText, sections, lastMessage) => {
+const sendListMessage = async (to, body, buttonText, sections, lastMessage, queryMess) => {
     const data = {
         messaging_product: "whatsapp",
         to,
@@ -116,35 +64,54 @@ const sendListMessage = async (to, body, buttonText, sections, lastMessage) => {
 
     const response = await sendMessage(data);
 
-    if (lastMessage) {
-        await updateLastMessage(to, lastMessage);
-    }
+    if (lastMessage) await updateLastMessage(to, lastMessage);
+    if (queryMess) await updateQueryLastMessage(to, queryMess);
 
     return response;
 };
 
-// ✅ Send Image Message Function
-const sendPhotoMessage = async (phone, imageUrl, caption, lastMessage) => {
+const sendPhotoMessage = async (phone, imageUrl, caption, lastMessage, queryMess) => {
     const data = {
         messaging_product: "whatsapp",
         to: phone,
         type: "image",
-        image: {
-            link: imageUrl
-        }
+        image: { link: imageUrl }
     };
 
-    if (caption) {
-        data.image.caption = caption || "";
-    }
+    if (caption) data.image.caption = caption;
 
     const response = await sendMessage(data);
 
-    if (lastMessage) {
-        await updateLastMessage(phone, lastMessage);
-    }
+    if (lastMessage) await updateLastMessage(phone, lastMessage);
+    if (queryMess) await updateQueryLastMessage(phone, queryMess);
 
     return response;
 };
 
-export { sendTextMessage, sendButtonMessage, sendListMessage, sendPhotoMessage }
+const updateLastMessage = async (phoneNumber, lastMessage) => {
+    try {
+        if (!lastMessage) return;
+        await User.findOneAndUpdate(
+            { phoneNumber },
+            { lastMessage },
+            { upsert: true, new: true }
+        );
+    } catch (error) {
+        console.error("Error updating last message:", error.message);
+    }
+};
+
+const updateQueryLastMessage = async (phoneNumber, queryMess) => {
+    try {
+        if (!queryMess) return;
+        await User.findOneAndUpdate(
+            { phoneNumber },
+            { queryMess },
+            { upsert: true, new: true }
+        );
+    } catch (error) {
+        console.error("Error updating query message:", error.message);
+    }
+};
+
+export { sendTextMessage, sendButtonMessage, sendListMessage, sendPhotoMessage };
