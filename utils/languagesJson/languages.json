@@ -1,5 +1,7 @@
 {
     "en": {
+        "ITEM_UPLOAD_SUCCESS": "Your searching item image is uploaded successfully.",
+        "IMAGE_UPLOAD_FAILED": "Image upload failed. Please upload again.",
         "SRCH": "Search Item",
         "ACC": "Manage account",
         "REG_SHOP": "🤝 Register Shop",
@@ -54,7 +56,7 @@
         "ERROR_VENDOR_RESPONSE": "❌ Error in handleVendorResponse:",
         "PROFILE_OVERVIEW": "🌍 Profile Overview",
         "UPDATE_PROFILE": "📝 Update Profile",
-        "PROFILE_DETAILS": "Profile Overview:\nRegistration Date: {createdAt}\nYour Name: {vendorFullName}\nShop Name: {shopName}\nShop Address: {address}\nShop Category: {shopCategory}\nShop Location: {location}",
+        "PROFILE_DETAILS": "*Profile Overview*:\n\n*Registration Date*: {createdAt}\n*Your Name*: {vendorFullName}\n*Shop Name*: {shopName}\n*Shop Address*: {address}\n*Shop Category*: {shopCategory}\n*Shop Location*: {location}",
         "UPDATE_PROFILE_MSG": "Please select the field you want to update",
         "INVALID_NAME": "❌ Invalid name! Please enter a valid name with alphabets only.",
         "FULL_NAME_UPDATED": "Your full name is now successfully updated with {vendorFullName}.",
@@ -82,7 +84,7 @@
         "VENDOR_PRICE": "Price",
         "MAP_LOCATION": [
             "Google Maps",
-            "https://maps.google.com/maps?q={lat},{lng}"
+            "https://maps.google.com/maps?q={lng},{lat}"
         ],
         "NO_IMAGE_FOUND": "❌ No image found! Please send a valid business photo.",
         "UPLOAD_SUCCESS_PHOTO": "✅ Your business photo has been uploaded successfully!",
@@ -109,9 +111,11 @@
         "PROMPT_NEW_NAME": "Please enter your new name:",
         "PROMPT_NEW_PHONE": "Please enter your new phone number:",
         "PROMPT_NEW_EMAIL": "Please enter your new email:",
-        "QUERY_RESPONSE": "You queried for these items but didn’t respond:\n\n{queriesList}"
+        "QUERY_RESPONSE": "You queried for these items but didn’t respond:\n\n{queriesList}",
+        "SHOP_NAME": "Shop Name"
     },
     "ur": {
+        "IMAGE_UPLOAD_FAILED": "تصویر اپ لوڈ ناکام ہو گئی۔ براہ کرم دوبارہ اپ لوڈ کریں۔",
         "SRCH": "آئٹم تلاش کریں",
         "ACC": "اکاؤنٹ مینج کریں",
         "REG_SHOP": "🤝 دکان رجسٹر کریں",
@@ -167,7 +171,7 @@
         "MANAGE_ACCOUNT": "براہ کرم نیچے سے ایک آپشن منتخب کریں:",
         "PROFILE_OVERVIEW": "🌍 پروفائل کا جائزہ",
         "UPDATE_PROFILE": "📝 پروفائل اپڈیٹ کریں",
-        "PROFILE_DETAILS": "پروفائل کا جائزہ:\nرجسٹریشن کی تاریخ: {createdAt}\nآپ کا نام: {vendorFullName}\nدکان کا نام: {shopName}\nدکان کا پتہ: {address}\nدکان کی کیٹیگری: {shopCategory}\nدکان کا مقام: {location}",
+        "PROFILE_DETAILS": "*پروفائل کا جائزہ*:\n\n*رجسٹریشن کی تاریخ*: {createdAt}\n*آپ کا نام*: {vendorFullName}\n*دکان کا نام*: {shopName}\n*دکان کا پتہ*: {address}\n*دکان کی کیٹیگری*: {shopCategory}\n*دکان کا مقام*: {location}",
         "UPDATE_PROFILE_MSG": "براہ کرم وہ فیلڈ منتخب کریں جسے آپ اپڈیٹ کرنا چاہتے ہیں",
         "ENTER_FULL_NAME": "براہ کرم اپنا پورا نام درج کریں",
         "INVALID_NAME": "❌ غلط نام! براہ کرم صرف حروف کے ساتھ ایک درست نام درج کریں۔",
@@ -195,7 +199,7 @@
         "SHOP_REGISTER_SUCCESS": "زبردست! آپ کی دکان کامیابی سے رجسٹر ہو گئی ہے۔",
         "VENDOR_PRICE": "قیمت",
         "MAP_LOCATION": [
-            "گوگل میپس",
+            "*گوگل میپس*",
             "https://maps.google.com/maps?q={lat},{lng}"
         ],
         "UPLOAD_SUCCESS_PHOTO": "✅ آپ کی کاروباری تصویر کامیابی سے اپ لوڈ ہو گئی ہے!",
@@ -222,9 +226,13 @@
         "PROMPT_NEW_NAME": "براہ کرم اپنا نیا نام درج کریں:",
         "PROMPT_NEW_PHONE": "براہ کرم اپنا نیا فون نمبر درج کریں:",
         "PROMPT_NEW_EMAIL": "براہ کرم اپنی نئی ای میل درج کریں:",
-        "QUERY_RESPONSE": "آپ نے ان آئٹمز کی کوئری کی تھی لیکن جواب نہیں دیا:\n\n{queriesList}"
+        "QUERY_RESPONSE": "آپ نے ان آئٹمز کی کوئری کی تھی لیکن جواب نہیں دیا:\n\n{queriesList}",
+        "ITEM_UPLOAD_SUCCESS": "آپ کی تلاش کردہ آئٹم کی تصویر کامیابی سے اپ لوڈ ہوگئی ہے۔",
+        "SHOP_NAME": "دکان کا نام"
     },
     "rm": {
+        "IMAGE_UPLOAD_FAILED": "Tasveer upload nakam ho gayi. Barah-e-karam dobara upload karein.",
+        "ITEM_UPLOAD_SUCCESS": "Aap ki talash karda item ki tasveer kamiyabi se upload ho gayi hai.",
         "SRCH": "Item dhundein",
         "ACC": "Account Nizam",
         "REG_SHOP": "Dukan Banaye",
@@ -280,8 +288,7 @@
         "MANAGE_ACCOUNT": "Bara-e-karam neeche se aik option chunein:",
         "PROFILE_OVERVIEW": "Profile jaiza",
         "UPDATE_PROFILE": "Profile update",
-        "PROFILE_DETAILS": "Profile ka jaiza:\nRegistration Date: {createdAt}\nAap ka naam: {vendorFullName}\nDukan ka naam: {shopName}\nDukan ka pata: {address}\nDukan ki category: {shopCategory}\nDukan ka location: {location}",
-        "UPDATE_PROFILE_MSG": "Bara-e-karam woh field chunein jo aap update karna chahte hain",
+        "PROFILE_DETAILS": "*Profile ka jaiza*\n\n*Registration Date*: {createdAt}\n*Full Name*: {vendorFullName}\n*Dukan ka Naam*: {shopName}\n*Dukan ka Pata*: {address}\n*Dukan ki Category*: {shopCategory}\n*Dukan ka Location*: {location}",
         "ENTER_FULL_NAME": "Apna poora naam likhein",
         "INVALID_NAME": "❌ Ghalat naam! Sirf alphabets ka istemal karein.",
         "FULL_NAME_UPDATED": "Aap ka poora naam {vendorFullName} ke sath update ho gaya hai.",
@@ -308,7 +315,7 @@
         "SHOP_REGISTER_SUCCESS": "Wah! Tumhari dukan kamiyabi se register ho gai hai.",
         "VENDOR_PRICE": "Keemat",
         "MAP_LOCATION": [
-            "Google Maps",
+            "*Google Maps*",
             "https://maps.google.com/maps?q={lat},{lng}"
         ],
         "UPLOAD_SUCCESS_PHOTO": "✅ Tumhari business photo kamiyabi se upload ho chuki hai!",
@@ -335,6 +342,7 @@
         "PROMPT_NEW_NAME": "Apna naya naam likhein:",
         "PROMPT_NEW_PHONE": "Apna naya phone number likhein:",
         "PROMPT_NEW_EMAIL": "Apni nayi email likhein:",
-        "QUERY_RESPONSE": "Tumne in items ki query ki thi lekin jawab nahi diya:\n\n{queriesList}"
+        "QUERY_RESPONSE": "Tumne in items ki query ki thi lekin jawab nahi diya:\n\n{queriesList}",
+        "SHOP_NAME": "Dukan ka Naam"
     }
 }

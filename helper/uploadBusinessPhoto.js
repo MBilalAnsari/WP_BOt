@@ -1,57 +1,53 @@
 import axios from "axios";
-import streamifier from "streamifier";
-import { v2 as cloudinary } from "cloudinary";
-import dotenv from "dotenv";
+import cloudinary from "../config/cloudinaryConfig.js";
 
-dotenv.config(); // 🔹 Load Environment Variables
-
-// ✅ Direct Cloudinary Configuration
-cloudinary.config({
-    cloud_name: 'dpsxv4fmn',
-    api_key: '674392325678217',
-    api_secret: '6KhvEX2F0eULk-1VKcGB3eysv6c',
-    timeout: 60000,// 🔹 60 seconds timeout (optional)
-});
-
-export const uploadBusinessPhoto = async (phoneNumber, imageId) => {
+export const uploadWhatsAppImage = async (imageId, mimeType) => {
     try {
-        console.log("📩 Uploading Business Photo for:", phoneNumber, "Image ID:", imageId);
+        const accessToken = process.env.WHATSAPP_TOKEN ; // Replace this with your actual access token
 
-        // 1️⃣ **WhatsApp se Image URL lo**
-        const mediaResponse = await axios.get(`https://graph.facebook.com/v18.0/${imageId}`, {
-            headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}` },
+        console.log("Received Image ID:", imageId);
+        console.log("Expected MIME Type:", mimeType);
+
+        // Step 1: Download Image from WhatsApp API
+        const response = await axios({
+            method: "GET",
+            url: `https://graph.facebook.com/v22.0/${imageId}`,
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
         });
 
-        const imageUrl = mediaResponse.data.url;
-        if (!imageUrl) throw new Error("❌ Image URL not found!");
+        // Image URL from WhatsApp
+        const imageUrl = response.data.url;
+        console.log("Image URL:", imageUrl);
 
-        console.log("✅ Image URL:", imageUrl);
-
-        // 2️⃣ **WhatsApp Image Buffer Download Karo**
-        const imageResponse = await axios.get(imageUrl, { responseType: "arraybuffer" });
-
-        if (!imageResponse.data || imageResponse.data.length < 1000) {
-            throw new Error("❌ Invalid Image Data! Buffer too small.");
-        }
-
-        const buffer = Buffer.from(imageResponse.data);
-        console.log("✅ Image Converted to Buffer");
-
-        // 3️⃣ **Alternative Base64 Upload**
-        const base64Image = `data:image/jpeg;base64,${buffer.toString("base64")}`;
-
-        // 4️⃣ **Cloudinary Pe Upload Karo**
-        console.log("🔄 Uploading to Cloudinary...");
-        const uploadedImage = await cloudinary.uploader.upload(base64Image, {
-            folder: "whatsapp_business_photos",
-            public_id: `business_${phoneNumber}_${Date.now()}`,
+        //Step 2: Fetch Image Binary Data
+        const imageBuffer = await axios({
+            method: "GET",
+            url: imageUrl,
+            responseType: "arraybuffer",
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
         });
 
-        console.log("✅ Image uploaded to Cloudinary:", uploadedImage.secure_url);
+        console.log("Image Downloaded Successfully!");
 
-        return uploadedImage.secure_url;
+        //Convert Image to Base64
+        const base64Image = Buffer.from(imageBuffer.data).toString("base64");
+        console.log("Base64 Converted Successfully!");
+
+        //Step 3: Upload Image to Cloudinary
+        console.log("Uploading to Cloudinary...");
+        const uploadResponse = await cloudinary.uploader.upload(`data:${mimeType};base64,${base64Image}`, {
+            folder: "whatsapp_images"
+        });
+
+        console.log("Cloudinary Upload Successful:", uploadResponse);
+        return uploadResponse.secure_url; //Return the Cloudinary URL
+
     } catch (error) {
-        console.error("❌ Upload Error:", error.response?.data || error.message);
+        console.error("Image Upload Failed:", error.response?.data || error.message);
         return null;
     }
 };

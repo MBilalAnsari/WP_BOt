@@ -1,5 +1,5 @@
-import { sendButtonMessage, sendListMessage, sendPhotoMessage, sendTextMessage } from "../../../helper/messageHelperForVendor.js";
-import { uploadBusinessPhoto } from "../../../helper/uploadBusinessPhoto.js";
+import { sendButtonMessage, sendListMessage, sendLocationMessage, sendPhotoMessage, sendTextMessage } from "../../../helper/messageHelperForVendor.js";
+import { uploadWhatsAppImage } from "../../../helper/uploadBusinessPhoto.js";
 import Vendor from "../../../models/Vendor.js";
 // import { shopCategory } from "../constants/shopCategory";
 
@@ -7,7 +7,8 @@ import Vendor from "../../../models/Vendor.js";
 const sendVendorButtonMessage = sendButtonMessage;
 const sendVendorListMessage = sendListMessage;
 const sendVendorTextMessage = sendTextMessage;
-export { sendVendorButtonMessage, sendVendorListMessage, sendVendorTextMessage }
+const sendVendorPhotoMessage = sendPhotoMessage;
+export { sendVendorButtonMessage, sendVendorListMessage, sendVendorTextMessage, sendVendorPhotoMessage }
 
 export const shopCategory = [
     { id: 1, title: "grocery" },
@@ -136,16 +137,23 @@ export const registerVendor = async (messageData, userLanguages) => {
     //     await sendTextMessage(phoneNumber, "Great! Now, please share your shop's exact location by sending a pinned location.", "0.2.4")
     // }
 
+
     else if (text && vlastMessage === "0.2.3") {
+        console.log("location wali");
+
         const isValidAddress = (address) => /^[A-Za-z0-9\s,.-/#]+$/.test(address);
         if (!isValidAddress(text)) {
             await sendTextMessage(phoneNumber, lang[s_v_ln].INVALID_ADDRESS, "0.2.3");
             return;
         }
+
         vendor.address = text;
         await vendor.save();
-        await sendTextMessage(phoneNumber, lang[s_v_ln].ENTER_PINNED_LOCATION, "0.2.4");
+
+        //  Call updated sendLocationMessage function
+        await sendLocationMessage(phoneNumber, lang[s_v_ln].ENTER_PINNED_LOCATION, "0.2.4");
     }
+
 
     // else if (vendor?.lastMessage === "0.2.4") {
 
@@ -176,32 +184,35 @@ export const registerVendor = async (messageData, userLanguages) => {
         const image = imageId
         console.log("imageeee id", image)
         if (image) {
-            const imageUrl = await uploadBusinessPhoto(phoneNumber, image); // 🔹 Cloudinary pe upload karo
-            console.log("image_URL imageeee id k baad", imageUrl)
+            const imageUrl = await uploadWhatsAppImage(imageId, mimeType);
+            console.log("Generated Image URL:", imageUrl);
+
             if (imageUrl) {
-                // WhatsApp pe confirmatory message send karo
-                console.log("if ky andar imageURL")
-                await sendPhotoMessage(phoneNumber, imageUrl, lang[s_v_ln].UPLOAD_SUCCESS_PHOTO);
-                // Database me shop image save karo
-                vendor.shopImg = imageUrl;
-                await vendor.save();
-            } else {
-                await sendTextMessage(phoneNumber, lang[s_v_ln].FAILED_UPLOAD_PHOTO);
+                console.log("if ky andar imageURL");
+
+                const updateResult = await Vendor.updateOne(
+                    { _id: vendor._id },
+                    { $set: { shopImg: imageUrl } }
+                );
+
+                console.log("MongoDB Update Result:", updateResult);
+
+                if (updateResult.modifiedCount > 0) {
+                    await sendPhotoMessage(phoneNumber, imageUrl, lang[s_v_ln].UPLOAD_SUCCESS_PHOTO);
+                } else {
+                    console.error("Shop Image Update Failed!");
+                    await sendTextMessage(phoneNumber, lang[s_v_ln].FAILED_UPLOAD_PHOTO);
+                }
             }
         } else {
-            await sendTextMessage(phoneNumber, "❌ No image found! Please send a valid business photo.");
+            await sendTextMessage(phoneNumber, "lang[s_v_l].NO_IMAGE_FOUND");
         }
         const categories = shopCategory.map((category) => `${category.id}. ${category.title}`).join("\n");
-
-        // const message = `Great! Now, please select the category that best describes your shop.\n\n` +
-        //     `${categories}\n\n` +
-        //     `Choose the categories that best describe your shop. You can select multiple options by sending the numbers separated by commas (e.g., 2,4,3).`;
-
         const message = lang[s_v_ln].SELECT_CATEGORY.replace("{categories}", categories);
         await sendTextMessage(phoneNumber, message, "0.2.6");
     }
 
-    
+
 
     // else if (text && vlastMessage === "0.2.6") {
 

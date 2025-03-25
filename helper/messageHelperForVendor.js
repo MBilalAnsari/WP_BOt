@@ -93,7 +93,7 @@ const sendListMessage = async (to, body, buttonText, sections, lastMessage) => {
 };
 
 // ✅ Send Image Message Function
-const sendPhotoMessage = async (phone, imageUrl, caption, lastMessage) => {
+const sendPhotoMessage = async (phone, caption, imageUrl, lastMessage) => {
     const data = {
         messaging_product: "whatsapp",
         to: phone,
@@ -115,6 +115,31 @@ const sendPhotoMessage = async (phone, imageUrl, caption, lastMessage) => {
 
     return response;
 };
+const sendLocationMessage = async (phone, caption, lastMessage) => {
+    const data = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": phone,
+        "type": "interactive",
+        "interactive": {
+            "type": "location_request_message",
+            "body": {
+                "text": caption
+            },
+            "action": {
+                "name": "send_location"
+            }
+        }
+    };
 
-export { sendTextMessage, sendButtonMessage, sendListMessage, sendPhotoMessage }
- 
+    const response = await sendMessage(data);
+
+    if (lastMessage) {
+        await updateLastMessage(phone, lastMessage);
+    }
+
+    return response;
+};
+
+
+export { sendTextMessage, sendButtonMessage, sendListMessage, sendPhotoMessage, sendLocationMessage }

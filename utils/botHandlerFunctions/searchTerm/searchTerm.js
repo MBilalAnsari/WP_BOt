@@ -1,9 +1,10 @@
-import { sendButtonMessage, sendListMessage, sendTextMessage } from "../../../helper/messageHelper.js";
+import { sendButtonMessage, sendListMessage, sendLocationMessage, sendPhotoMessage, sendTextMessage } from "../../../helper/messageHelper.js";
 import User from "../../../models/user.js";
 import Vendor from "../../../models/Vendor.js";
 import Query from "../../../models/Query.js";
 import mongoose from "mongoose";
 import { query } from "express";
+import { uploadWhatsAppImage } from "../../../helper/uploadBusinessPhoto.js";
 const { ObjectId } = mongoose.Types;
 
 const categories = [
@@ -18,6 +19,8 @@ const categories = [
 
 export const searchItem = async (messageData) => {
     const { phoneNumber, text, btnReply, listReply, lastMessage, image = {}, location, messagingProduct, profileName, s_u_ln, lang, s_v_ln } = messageData;
+    const { imageId, sha256, mimeType } = image;
+
     let user = await User.findOne({ phoneNumber });
     let vendor = await Vendor.findOne({ phoneNumber })
     if (!user && vendor) {
@@ -65,6 +68,52 @@ export const searchItem = async (messageData) => {
         await sendTextMessage(phoneNumber, lang[s_u_ln].UPLOAD_MSG, "0.1.3", "0.1.2");
     }
 
+    else if (imageId && user.lastMessage === "0.1.3") {
+
+        const image = imageId
+        console.log("imageeee id", image)
+        if (image) {
+            const imageUrl = await uploadWhatsAppImage(imageId, mimeType);
+            console.log("Generated Image URL:", imageUrl);
+
+            if (imageUrl) {
+                console.log("if ky andar imageURL");
+
+                const updateResult = await User.updateOne(
+                    { _id: user._id },
+                    { $set: { shopImg: imageUrl } }
+                );
+
+                const updateQuery = await Query.updateOne(
+                    { userId: user._id },
+                    { $set: { shopImg: imageUrl } }
+                );
+
+                console.log("MongoDB Update Result:", updateResult);
+                console.log("MongoDB Query Result:", updateQuery);
+
+                if (updateResult.modifiedCount > 0) {
+                    await sendTextMessage(phoneNumber, lang[s_u_ln].ITEM_UPLOAD_SUCCESS);
+                } else {
+                    console.error("Shop Image Update Failed!");
+                    await sendTextMessage(phoneNumber, lang[s_u_ln].IMAGE_UPLOAD_FAILED, "0.1.3");
+                }
+            }
+        } else {
+            await sendTextMessage(phoneNumber, "lang[s_v_l].NO_IMAGE_FOUND");
+        }
+
+        if (categories.length > 3) {
+            const categorySections = [{
+                title: lang[s_u_ln].CATEGORY_TITLE,
+                rows: categories.map(cat => ({ id: cat.id, title: cat.title }))
+            }];
+            await sendListMessage(phoneNumber, lang[s_u_ln].CHOOSE_CATEGORY, lang[s_u_ln].CATEGORY_NAME, categorySections, "0.1.4", "0.1.3");
+        } else {
+            await sendButtonMessage(phoneNumber, lang[s_u_ln].CHOOSE_CATEGORY, categories, "0.1.4", "0.1.3");
+        }
+    }
+
     else if ((btnReply?.toLowerCase() === "no" && lastMessage.trim() === "0.1.2") || (btnReply.toLowerCase() === "continue" && user?.queryMess === "0.1.3")) {
         if (categories.length > 3) {
             const categorySections = [{
@@ -80,7 +129,7 @@ export const searchItem = async (messageData) => {
     else if ((categories.some(cat => cat.id === listReply) && lastMessage === "0.1.4") || (btnReply.toLowerCase() === "continue" && user?.queryMess === "0.1.4")) {
         user.searchCategory = listReply;
         await user.save();
-        await sendTextMessage(phoneNumber, lang[s_u_ln].LOCATION_MSG, "0.1.5", "0.1.4");
+        await sendLocationMessage(phoneNumber, lang[s_u_ln].LOCATION_MSG, "0.1.5", "0.1.4");
     }
 
     else if (lastMessage === "0.1.5" || (btnReply.toLowerCase() === "continue" && user?.queryMess === "0.1.5")) {
@@ -147,7 +196,7 @@ export const searchItem = async (messageData) => {
                 const vlang = vendorData?.language || "en"; // Default "en" rakho agar language na mile
 
                 //  Short message send karo
-                const message = lang[selectedLang].QUERY_RESPONSE.replace("{queriesList}", queriesList);
+                const message = lang[vlang].QUERY_RESPONSE.replace("{queriesList}", queriesList);
                 await sendTextMessage(vendorPhone, message);
 
                 //  Individual buttons send karo
@@ -159,9 +208,6 @@ export const searchItem = async (messageData) => {
                     await sendButtonMessage(vendorPhone, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
                 }
             }
-
-
-
 
             let searchCriteria = {};
             if (user?.pinLocation?.coordinates[1] && user?.pinLocation?.coordinates[0] && user?.radius) {
@@ -200,6 +246,7 @@ export const searchItem = async (messageData) => {
                             ],
                             userId: new mongoose.Types.ObjectId(userId),
                             product: user.currentSearch,
+                            shopImg: user.shopImg,
                             status: "waiting"
                         },
                         {
@@ -248,13 +295,22 @@ export const searchItem = async (messageData) => {
 
                     if (isValidLastMessage) {
                         for (const query of pendingQueries) {
+                            const vlang = vendor.language
+
                             const button = [
                                 { id: `Yes_avl|${query.queryId}`, title: "Yes" },
                                 { id: "No_avl", title: "No" },
                                 { id: "continue", title: "Continue" }
                             ];
-                            const vlang = vendor.language
-                            await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+
+                            const shopImgavail = query.shopImg;
+                            if (shopImgavail) {
+                                await sendPhotoMessage(vendor?.phoneNumber, shopImgavail,);
+                                await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`)
+                            } else {
+                                await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+                            }
+
                         }
                     } else {
                         for (const query of pendingQueries) {
@@ -263,8 +319,13 @@ export const searchItem = async (messageData) => {
                                 { id: "No_avl", title: "No" }
                             ];
                             const vlang = vendor.language
-                            console.log("vlang", vlang)
-                            await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+                            const shopImgavail = query.shopImg;
+                            if (shopImgavail) {
+                                await sendPhotoMessage(vendor?.phoneNumber, shopImgavail,);
+                                await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`)
+                            } else {
+                                await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+                            }
                         }
                     }
                 }
@@ -342,7 +403,7 @@ export const searchItem = async (messageData) => {
 
         if (!vendorDetails) return "Vendor not found";
 
-        const { pinLocation, address } = vendorDetails;
+        const { pinLocation, address, shopName, shopImg } = vendorDetails;
 
         if (!query.detailsViewed) {
             if (userFound.coins >= 1) {
@@ -354,7 +415,9 @@ export const searchItem = async (messageData) => {
             query.detailsViewed = true;
             await query.save();
         }
-
+        if (shopImg) {
+            await sendPhotoMessage(userFound.phoneNumber, shopImg);
+        }
         const buttons = [
             { id: `unlock_contact|${recID}`, title: lang[s_u_ln].UNLOCK_CONTACT },
             { id: `unlock_price|${recID}`, title: lang[s_u_ln].UNLOCK_PRICE }
@@ -365,8 +428,9 @@ export const searchItem = async (messageData) => {
             .replace("{lat}", pinLocation.coordinates[0])
             .replace("{lng}", pinLocation.coordinates[1]);
 
-        const msg = `📍 [${lang[s_u_ln].MAP_LOCATION[0]}](${mapLink})\n` +
-            `🏠 ${lang[s_v_ln].SHOP_ADDRESS}: ${address}`;
+        const msg = `🛒 *${lang[s_v_ln].SHOP_NAME}:* ${shopName}\n\n` +
+            `📍 [${lang[s_u_ln].MAP_LOCATION[0]}](${mapLink})\n` +
+            `🏠 *${lang[s_v_ln].SHOP_ADDRESS}:* ${address}`;
 
         await sendButtonMessage(userFound.phoneNumber, msg, buttons, "0.1.9.1");
     }

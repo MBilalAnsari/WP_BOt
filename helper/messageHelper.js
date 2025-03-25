@@ -18,7 +18,31 @@ const sendTextMessage = async (to, body, lastMessage, queryMess) => {
 
     return response;
 };
+const sendLocationMessage = async (phone, caption, lastMessage) => {
+    const data = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": phone,
+        "type": "interactive",
+        "interactive": {
+            "type": "location_request_message",
+            "body": {
+                "text": caption
+            },
+            "action": {
+                "name": "send_location"
+            }
+        }
+    };
 
+    const response = await sendMessage(data);
+
+    if (lastMessage) {
+        await updateLastMessage(phone, lastMessage);
+    }
+
+    return response;
+};
 const sendButtonMessage = async (phone, text, buttons, lastMessage, queryMess) => {
     const data = {
         messaging_product: "whatsapp",
@@ -114,4 +138,4 @@ const updateQueryLastMessage = async (phoneNumber, queryMess) => {
     }
 };
 
-export { sendTextMessage, sendButtonMessage, sendListMessage, sendPhotoMessage };
+export { sendTextMessage, sendButtonMessage, sendListMessage, sendPhotoMessage , sendLocationMessage };

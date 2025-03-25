@@ -1,4 +1,4 @@
-import { sendVendorButtonMessage, sendVendorListMessage, sendVendorTextMessage } from "../../botHandlerFunctions/vendorTerm/vendorTerm.js";
+import { sendVendorButtonMessage, sendVendorListMessage, sendVendorTextMessage , sendVendorPhotoMessage } from "../../botHandlerFunctions/vendorTerm/vendorTerm.js";
 import { shopCategory } from "../../botHandlerFunctions/vendorTerm/vendorTerm.js";
 import Vendor from "../../../models/Vendor.js";
 
@@ -75,9 +75,14 @@ export const vendorManageAccount = async (messageData) => {
             .replace("{shopName}", vendor?.shopName || "N/A")
             .replace("{address}", vendor?.address || "N/A")
             .replace("{shopCategory}", vendor?.shopCategory || "N/A")
-            .replace("{location}", `https://maps.google.com/maps?q=${pinCord_two},${pinCord_one}`);
+            .replace("{location}", `https://maps.google.com/maps?q=${pinCord_two},${pinCord_one}` || "N/A");
 
-        await sendVendorTextMessage(phoneNumber, message, "0.5.1");
+            if (vendor?.shopImg) {
+                await sendVendorPhotoMessage(phoneNumber, message ,vendor.shopImg);
+            } else {
+                // Agar image nahi hai toh sirf text message bhejo
+                await sendVendorTextMessage(phoneNumber, message, "0.5.1");
+            }
     }
 
 

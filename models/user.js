@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   lastMessage: { type: String },
   queryMess: { type: String },
   locationPage: { type: Number }, 
+  shopImg: { type: String, default: "default.jpg" },
   category: { type: String }, 
   location: { type: String }, 
   searchTerm: { type: String }, 
