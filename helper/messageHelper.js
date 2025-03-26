@@ -18,6 +18,8 @@ const sendTextMessage = async (to, body, lastMessage, queryMess) => {
 
     return response;
 };
+
+
 const sendLocationMessage = async (phone, caption, lastMessage) => {
     const data = {
         "messaging_product": "whatsapp",

@@ -5,6 +5,7 @@ import Query from "../../../models/Query.js";
 import mongoose from "mongoose";
 import { query } from "express";
 import { uploadWhatsAppImage } from "../../../helper/uploadBusinessPhoto.js";
+import { topFunctionHandler } from "../../../helper/topFunction.js";
 const { ObjectId } = mongoose.Types;
 
 const categories = [
@@ -20,6 +21,8 @@ const categories = [
 export const searchItem = async (messageData) => {
     const { phoneNumber, text, btnReply, listReply, lastMessage, image = {}, location, messagingProduct, profileName, s_u_ln, lang, s_v_ln } = messageData;
     const { imageId, sha256, mimeType } = image;
+    const isImageEmpty = !(image.imageId?.trim() || image.mimeType?.trim() || image.sha256?.trim());
+
 
     let user = await User.findOne({ phoneNumber });
     let vendor = await Vendor.findOne({ phoneNumber })
@@ -74,7 +77,7 @@ export const searchItem = async (messageData) => {
         await sendTextMessage(phoneNumber, lang[s_u_ln].UPLOAD_MSG, queryId, "0.1.2");
     }
 
-    else if (imageId && lastMessage?.startsWith("0.1.3")) {
+    else if (!isImageEmpty && lastMessage?.startsWith("0.1.3")) {
         const [lastmessage, queryId] = lastMessage?.split("|")
         console.log("lastMesSPlitWlaa", lastmessage, queryId)
         const image = imageId
@@ -139,7 +142,7 @@ export const searchItem = async (messageData) => {
         await sendLocationMessage(phoneNumber, lang[s_u_ln].LOCATION_MSG, "0.1.5", "0.1.4");
     }
 
-    else if (lastMessage === "0.1.5" || (btnReply.toLowerCase() === "continue" && user?.queryMess === "0.1.5")) {
+    else if ((lastMessage === "0.1.5" && location?.latitude && location?.longitude) || (btnReply.toLowerCase() === "continue" && user?.queryMess === "0.1.5")) {
         console.log("location agai", location);
 
         if (!location?.latitude || !location?.longitude) {
@@ -357,7 +360,7 @@ export const searchItem = async (messageData) => {
         }
     }
 
-    else if (btnReply?.toLowerCase().startsWith("yes_")) {
+    else if (btnReply?.toLowerCase().startsWith("yes_") && lastMessage?.startsWith("0.1.7")) {
         console.log("==>> Vendor ne 'Yes' select kiya!");
         const [yes, queryId] = btnReply.split("|");
         console.log(queryId, "agayi beta");
@@ -393,7 +396,9 @@ export const searchItem = async (messageData) => {
         console.log("khchjsdakjdhkhsdf", updatedQuery);
 
         if (!updatedQuery) {
-            return await sendTextMessage(phoneNumber, lang[s_u_ln].QUERY_NOT_FOUND, "error");
+            await topFunctionHandler(messageData, sendButtonMessage, true)
+            await sendTextMessage(phoneNumber, lang[s_u_ln].QUERY_NOT_FOUND, "error");
+            return
         }
 
         const vendorId = updatedQuery?.vendorId;
@@ -408,7 +413,7 @@ export const searchItem = async (messageData) => {
         await sendButtonMessage(userPhone, lang[ulang].SEE_VENDOR_DETAILS, buttons, "0.1.9");
     }
 
-    else if (btnReply.toLowerCase().startsWith("view_details")) {
+    else if (btnReply.toLowerCase().startsWith("view_details") && lastMessage === "0.1.9") {
         console.log("lastmessssssssage", lastMessage);
         const [lastMessagee, recID] = btnReply.split("|");
         console.log("rec iDDDDDDDdd", lastMessagee, recID);
@@ -431,7 +436,9 @@ export const searchItem = async (messageData) => {
                 userFound.coins -= 1;
                 await userFound.save();
             } else {
-                return await sendTextMessage(userFound.phoneNumber, lang[s_u_ln].INSUFFICIENT_COINS, "error");
+                await sendTextMessage(userFound.phoneNumber, lang[s_u_ln].INSUFFICIENT_COINS, "error");
+                await topFunctionHandler(messageData, sendButtonMessage, true)
+                return
             }
             query.detailsViewed = true;
             await query.save();
@@ -451,7 +458,7 @@ export const searchItem = async (messageData) => {
         await sendButtonMessage(userFound.phoneNumber, msg, buttons, "0.1.9.1");
     }
 
-    else if (btnReply?.toLowerCase().startsWith("unlock_contact")) {
+    else if (btnReply?.toLowerCase().startsWith("unlock_contact") && lastMessage === "0.1.9.1") {
         const [one, two] = btnReply.split("|");
         console.log("unlock_contact", one, two);
 
@@ -478,7 +485,7 @@ export const searchItem = async (messageData) => {
         await sendTextMessage(userFound.phoneNumber, `${lang[s_u_ln].VENDOR_CONTACT}: ${vendorDetails.phoneNumber}`, "0.1.9.1");
     }
 
-    else if (btnReply?.toLowerCase().startsWith("unlock_price")) {
+    else if (btnReply?.toLowerCase().startsWith("unlock_price") && lastMessage === "0.1.9.1") {
         const [one, two] = btnReply.split("|");
         console.log("Unlock_price", one, two);
 
@@ -502,6 +509,8 @@ export const searchItem = async (messageData) => {
         }
 
         await sendTextMessage(userFound.phoneNumber, `${lang[s_u_ln].VENDOR_PRICE}: ${priceProd}`);
+    } else {
+        await topFunctionHandler(messageData, sendButtonMessage, true)
     }
 
 }

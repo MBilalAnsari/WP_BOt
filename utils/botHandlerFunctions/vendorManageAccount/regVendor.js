@@ -3,6 +3,7 @@ import { shopCategory } from "../../botHandlerFunctions/vendorTerm/vendorTerm.js
 import Vendor from "../../../models/Vendor.js";
 import { uploadWhatsAppImage } from "../../../helper/uploadBusinessPhoto.js";
 import { topFunctionHandler } from "../../../helper/topFunction.js";
+import { sendVendorLocationMessage } from "../../../helper/messageHelperForVendor.js";
 
 
 const profile_overview = [
@@ -36,6 +37,9 @@ export const vendorManageAccount = async (messageData) => {
     console.log("AT Vendor Manage Account")
     const { longitude, latitude } = location;
     const { imageId, sha256, mimeType } = image;
+    const isImageEmpty = !(image.imageId?.trim() || image.mimeType?.trim() || image.sha256?.trim());
+    console.log("imagID" , isImageEmpty); 
+
 
 
     if ((["manage_acc_vendor"].includes(btnReply) && vlastMessage?.startsWith("0.5")) || (["manage_acc_vendor"].includes(btnReply) && vlastMessage?.startsWith("0.5.2"))) {
@@ -154,7 +158,7 @@ export const vendorManageAccount = async (messageData) => {
     }
     //Shop Location
     else if (["shop_location"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
-        await sendVendorTextMessage(phoneNumber, lang[s_v_ln].ENTER_SHOP_LOCATION, "0.5.2.4");
+        await sendVendorLocationMessage(phoneNumber, lang[s_v_ln].ENTER_SHOP_LOCATION, "0.5.2.4");
     }
     else if (vendor?.lastMessage === "0.5.2.4" && location?.latitude && location?.longitude) {
         if (!location?.latitude || !location?.longitude || text) {
@@ -170,7 +174,8 @@ export const vendorManageAccount = async (messageData) => {
     else if (["shop_image"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
         await sendVendorTextMessage(phoneNumber, lang[s_v_ln].ENTER_SHOP_IMAGE, "0.5.3.4");
     }
-    else if (image && vendor?.lastMessage === "0.5.3.4") {
+    else if (!isImageEmpty && vendor?.lastMessage === "0.5.3.4") {
+        console.log("Image update condition True")
         if (!image || text) {
             await sendVendorTextMessage(phoneNumber, lang[s_v_ln].INVALID_IMAGE, "0.5.3.4");
             return;

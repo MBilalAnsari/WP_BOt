@@ -10,6 +10,8 @@ import langData from "../utils/languagesJson/languages.json" with { type: "json"
 const lang = langData;
 import Query from "../models/Query.js";
 import { topFunctionHandler } from "../helper/topFunction.js";
+import { regUser } from "../utils/botHandlerFunctions/userManageAccount/regUser.js";
+
 
 
 
@@ -38,7 +40,9 @@ export const handleIncomingMessage = async (req, res) => {
     let s_u_ln = user?.language || "en";
     let s_v_ln = vendor?.language || "en";
 
+    const selectedLang = user?.language || vendor?.language || "en";
     const messageData = {
+        selectedLang : user?.language || vendor?.language || "en",
         vlastMessage: vendor?.lastMessage || "",
         lastMessage: user?.lastMessage || "",
         phoneNumber: `+${messageEntry?.from || ""}`,
@@ -75,7 +79,7 @@ export const handleIncomingMessage = async (req, res) => {
     let vlastMessage = messageData.vlastMessage;
 
     if (text.toLowerCase() === "hi" || text.toLowerCase() === "hello") {
-        await topFunctionHandler(messageData , sendButtonMessage , false);
+        await topFunctionHandler(messageData, sendButtonMessage, false);
     }
 
 
@@ -153,7 +157,6 @@ export const handleIncomingMessage = async (req, res) => {
         }
     }
 
-    const selectedLang = user?.language || vendor?.language || "en";
 
     if (["account_settings_both"].includes(btnReply)) {
         console.log("account_settings_both wali condition TRUE");
@@ -163,115 +166,109 @@ export const handleIncomingMessage = async (req, res) => {
         ];
         await sendVendorButtonMessage(phoneNumber, lang[selectedLang].ACC_SETTINGS_SELECT, manageAccountButtons, "0.5");
     }
-
     // For User Manage Account Term
-    if (["manage_acc_user"].includes(btnReply)) {
-        console.log("account_settings_user wali condition TRUE");
-        const manageAccountButtons = [
-            { id: "user_overview", title: lang[selectedLang].USER_ACC_OVERVIEW },
-            { id: "user_account_update", title: lang[selectedLang].USER_ACC_UPDATE },
-            { id: "user_history", title: lang[selectedLang].USER_ACC_HISTORY },
-        ];
-        await sendButtonMessage(phoneNumber, lang[selectedLang].ACC_USER_OPTION, manageAccountButtons);
+    // if (["manage_acc_user"].includes(btnReply)) {
+    //     console.log("account_settings_user wali condition TRUE");
+    //     const manageAccountButtons = [
+    //         { id: "user_overview", title: lang[selectedLang].USER_ACC_OVERVIEW },
+    //         { id: "user_account_update", title: lang[selectedLang].USER_ACC_UPDATE },
+    //         { id: "user_history", title: lang[selectedLang].USER_ACC_HISTORY },
+    //     ];
+    //     await sendButtonMessage(phoneNumber, lang[selectedLang].ACC_USER_OPTION, manageAccountButtons);
+    // }
+    // // For user overview
+    // if (["user_overview"].includes(btnReply)) {
+    //     console.log("user_overview wali condition TRUE");
+    //     if (user) {
+    //         await sendTextMessage(phoneNumber, `👤 ${lang[selectedLang].USER_ACC_OVERVIEW}
+    //     \n👤 Name: ${messageData.profileName}
+    //     \n📱 Phone: ${user.phoneNumber}
+    //     \n💰 Coins: ${user.coins}`);
+    //     }
+    // }
+    // // For user history update
+    // if (["user_history"].includes(String(btnReply))) {
+    //     if (user) {
+    //         const page = user.historyPage || 1;
+    //         const limit = 5;
+    //         const skip = (page - 1) * limit;
+
+    //         const query = await Query.find({ userId: user._id })
+    //             .sort({ createdAt: -1 })
+    //             .skip(skip)
+    //             .limit(limit + 1);
+
+    //         console.log(query);
+
+    //         if (query.length > 0) {
+    //             const displayQueries = query.slice(0, limit);
+
+    //             for (const q of displayQueries) {
+    //                 await sendTextMessage(
+    //                     phoneNumber,
+    //                     `🔍 ${lang[selectedLang].USER_ACC_HISTORY}
+    //                 \n📅 Date: ${q.createdAt}
+    //                 \n🔍 Product: ${q.product}
+    //                 \n💰 Price: ${q.priceByVendor || "Vendor not replied"}`
+    //                 );
+    //             }
+
+    //             if (query.length > limit) {
+    //                 const buttons = [{ id: "SeeMore", title: "See More" }];
+
+    //                 await sendButtonMessage(phoneNumber, lang[selectedLang].USER_HISTORY_LOAD_MORE, buttons, "see_more");
+
+    //                 await User.updateOne({ _id: user._id }, { $set: { historyPage: page + 1 } });
+    //             }
+    //         } else {
+    //             await sendTextMessage(phoneNumber, lang[selectedLang].USER_HISTORY_EMPTY);
+    //         }
+    //     } else {
+    //         await sendTextMessage(phoneNumber, lang[selectedLang].USER_NOT_FOUND_ERROR);
+    //     }
+    // }
+    // // For user account update
+    // if (["user_account_update"].includes(btnReply)) {
+    //     const accountUpdateButtons = [
+    //         { id: "user_name_update", title: lang[selectedLang].USER_NAME_CHANGE },
+    //         { id: "user_phone_update", title: lang[selectedLang].USER_PHONE_CHANGE },
+    //         { id: "user_email_update", title: lang[selectedLang].USER_EMAIL_CHANGE },
+    //     ];
+    //     await sendButtonMessage(phoneNumber, lang[selectedLang].USER_ACC_UPDATE, accountUpdateButtons);
+    // }
+    // // For user name update
+    // if (["user_name_update"].includes(btnReply)) {
+    //     await sendTextMessage(phoneNumber, lang[selectedLang].PROMPT_NEW_NAME);
+    // }
+    // // For user phone update
+    // if (["user_phone_update"].includes(btnReply)) {
+    //     await sendTextMessage(phoneNumber, lang[selectedLang].PROMPT_NEW_PHONE);
+    // }
+    // // For user email update
+    // if (["user_email_update"].includes(btnReply)) {
+    //     await sendTextMessage(phoneNumber, lang[selectedLang].PROMPT_NEW_EMAIL);
+    // }
+    else if((["manage_acc_user"].includes(btnReply) && vlastMessage === "0.5") || vlastMessage?.startsWith("0.5")){
+        await regUser(messageData)
     }
-
-    // For user overview
-    if (["user_overview"].includes(btnReply)) {
-        console.log("user_overview wali condition TRUE");
-        if (user) {
-            await sendTextMessage(phoneNumber, `👤 ${lang[selectedLang].USER_ACC_OVERVIEW}
-        \n👤 Name: ${messageData.profileName}
-        \n📱 Phone: ${user.phoneNumber}
-        \n💰 Coins: ${user.coins}`);
-        }
-    }
-
-    // For user history update
-    if (["user_history"].includes(String(btnReply))) {
-        if (user) {
-            const page = user.historyPage || 1;
-            const limit = 5;
-            const skip = (page - 1) * limit;
-
-            const query = await Query.find({ userId: user._id })
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit + 1);
-
-            console.log(query);
-
-            if (query.length > 0) {
-                const displayQueries = query.slice(0, limit);
-
-                for (const q of displayQueries) {
-                    await sendTextMessage(
-                        phoneNumber,
-                        `🔍 ${lang[selectedLang].USER_ACC_HISTORY}
-                    \n📅 Date: ${q.createdAt}
-                    \n🔍 Product: ${q.product}
-                    \n💰 Price: ${q.priceByVendor || "Vendor not replied"}`
-                    );
-                }
-
-                if (query.length > limit) {
-                    const buttons = [{ id: "SeeMore", title: "See More" }];
-
-                    await sendButtonMessage(phoneNumber, lang[selectedLang].USER_HISTORY_LOAD_MORE, buttons, "see_more");
-
-                    await User.updateOne({ _id: user._id }, { $set: { historyPage: page + 1 } });
-                }
-            } else {
-                await sendTextMessage(phoneNumber, lang[selectedLang].USER_HISTORY_EMPTY);
-            }
-        } else {
-            await sendTextMessage(phoneNumber, lang[selectedLang].USER_NOT_FOUND_ERROR);
-        }
-    }
-
-    // For user account update
-    if (["user_account_update"].includes(btnReply)) {
-        const accountUpdateButtons = [
-            { id: "user_name_update", title: lang[selectedLang].USER_NAME_CHANGE },
-            { id: "user_phone_update", title: lang[selectedLang].USER_PHONE_CHANGE },
-            { id: "user_email_update", title: lang[selectedLang].USER_EMAIL_CHANGE },
-        ];
-        await sendButtonMessage(phoneNumber, lang[selectedLang].USER_ACC_UPDATE, accountUpdateButtons);
-    }
-
-    // For user name update
-    if (["user_name_update"].includes(btnReply)) {
-        await sendTextMessage(phoneNumber, lang[selectedLang].PROMPT_NEW_NAME);
-    }
-
-    // For user phone update
-    if (["user_phone_update"].includes(btnReply)) {
-        await sendTextMessage(phoneNumber, lang[selectedLang].PROMPT_NEW_PHONE);
-    }
-
-    // For user email update
-    if (["user_email_update"].includes(btnReply)) {
-        await sendTextMessage(phoneNumber, lang[selectedLang].PROMPT_NEW_EMAIL);
-    }
-
-
     // For User Manage Account
-    if ((["manage_acc_vendor"].includes(btnReply) && vlastMessage === "0.5") || vlastMessage?.startsWith("0.5")) {
+    else if ((["manage_acc_vendor"].includes(btnReply) && vlastMessage === "0.5") || vlastMessage?.startsWith("0.5")) {
         console.log("manageAccount wali condition TRUE");
         await vendorManageAccount(messageData);
         console.log("Update Vendor Last Message:", vendor?.lastMessage);
     }
     // For User Search Term
-    if (["search_item"].includes(btnReply) || user?.lastMessage?.startsWith("0.1") || vendor?.lastMessage?.startsWith("0.1.7_") || user?.queryMess?.startsWith("0.1")) {
+    else if (["search_item"].includes(btnReply) || user?.lastMessage?.startsWith("0.1") || vendor?.lastMessage?.startsWith("0.1.7_") || user?.queryMess?.startsWith("0.1")) {
         console.log("searchItem wali condition TRUE");
         await searchItem(messageData);
         console.log("📩 Updated User Last Message:", user?.lastMessage);
     }
     // For Reg Shop Term
-    if (["register_shop"].includes(btnReply) || (vendor?.lastMessage?.startsWith("0.2"))) {
+    else if (["register_shop"].includes(btnReply) || (vendor?.lastMessage?.startsWith("0.2"))) {
         console.log("Reg Vendor condition TRUE");
         await registerVendor(messageData);
         console.log("📩 Updated User Last Message:", user?.lastMessage);
-    }
+    } 
 
 }
 

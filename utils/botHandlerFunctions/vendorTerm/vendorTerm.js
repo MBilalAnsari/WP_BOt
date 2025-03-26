@@ -1,4 +1,5 @@
 import { sendButtonMessage, sendListMessage, sendLocationMessage, sendPhotoMessage, sendTextMessage } from "../../../helper/messageHelperForVendor.js";
+import { topFunctionHandler } from "../../../helper/topFunction.js";
 import { uploadWhatsAppImage } from "../../../helper/uploadBusinessPhoto.js";
 import Vendor from "../../../models/Vendor.js";
 // import { shopCategory } from "../constants/shopCategory";
@@ -40,6 +41,7 @@ export const registerVendor = async (messageData, userLanguages) => {
 
     const { longitude, latitude } = location;
     const { imageId, sha256, mimeType } = image;
+    const isImageEmpty = !(image.imageId?.trim() || image.mimeType?.trim() || image.sha256?.trim());
 
     console.log("registerVendor")
     console.log(s_v_ln, "lagngdsf")
@@ -90,7 +92,7 @@ export const registerVendor = async (messageData, userLanguages) => {
         //  Call updated sendLocationMessage function
         await sendLocationMessage(phoneNumber, lang[s_v_ln].ENTER_PINNED_LOCATION, "0.2.4");
     }
-    else if (vendor?.lastMessage === "0.2.4") {
+    else if (vendor?.lastMessage === "0.2.4" && location?.latitude && location?.longitude) {
         if (!location?.latitude || !location?.longitude) {
             await sendTextMessage(phoneNumber, lang[s_v_ln].INVALID_LOCATION, "0.2.4");
             return;
@@ -99,7 +101,7 @@ export const registerVendor = async (messageData, userLanguages) => {
         await vendor.save();
         await sendTextMessage(phoneNumber, lang[s_v_ln].SEND_SHOP_PHOTO, "0.2.5");
     }
-    else if (imageId && vlastMessage === "0.2.5") {
+    else if (!isImageEmpty && vlastMessage === "0.2.5") {
         //  WhatsApp se image ID lo
         const image = imageId
         console.log("imageeee id", image)
@@ -154,5 +156,7 @@ export const registerVendor = async (messageData, userLanguages) => {
     else if (vlastMessage === "0.2.7" && btnReply?.toLowerCase() === "confirm") {
         await vendor.save();
         await sendTextMessage(phoneNumber, lang[s_v_ln].SHOP_REGISTER_SUCCESS, "0.2.8");
+    } else {
+        await topFunctionHandler(messageData, sendButtonMessage, true)
     }
 }
