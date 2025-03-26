@@ -2,8 +2,6 @@ import { sendVendorButtonMessage, sendVendorListMessage, sendVendorTextMessage, 
 import { shopCategory } from "../../botHandlerFunctions/vendorTerm/vendorTerm.js";
 import Vendor from "../../../models/Vendor.js";
 import { uploadWhatsAppImage } from "../../../helper/uploadBusinessPhoto.js";
-import { topFunctionHandler } from "../../../helper/topFunction.js";
-import { sendVendorLocationMessage } from "../../../helper/messageHelperForVendor.js";
 
 
 const profile_overview = [
@@ -37,20 +35,18 @@ export const vendorManageAccount = async (messageData) => {
     console.log("AT Vendor Manage Account")
     const { longitude, latitude } = location;
     const { imageId, sha256, mimeType } = image;
-    const isImageEmpty = !(image.imageId?.trim() || image.mimeType?.trim() || image.sha256?.trim());
-    console.log("imagID" , isImageEmpty); 
 
 
-
-    if ((["manage_acc_vendor"].includes(btnReply) && vlastMessage?.startsWith("0.5")) || (["manage_acc_vendor"].includes(btnReply) && vlastMessage?.startsWith("0.5.2"))) {
+    if (["account_settings_vendor"].includes(btnReply) || (["manage_acc_vendor"].includes(btnReply) && vlastMessage?.startsWith("0.5.2"))) {
         const manageAccountButtons = [
             { id: "profile_overview", title: lang[s_v_ln].PROFILE_OVERVIEW },
             { id: "update_profile", title: lang[s_v_ln].UPD_PROFILE }
         ];
         await sendVendorButtonMessage(phoneNumber, lang[s_v_ln].MANAGE_ACCOUNT, manageAccountButtons, "0.5.1");
     }
+
     // profile overview for vendor
-    else if ((["profile_overview"].includes(btnReply) && vlastMessage?.startsWith("0.5.1")) || (["profile_overview"].includes(btnReply) && vlastMessage?.startsWith("0.5.2"))) {
+    if ((["profile_overview"].includes(btnReply) && vlastMessage?.startsWith("0.5.1")) || (["profile_overview"].includes(btnReply) && vlastMessage?.startsWith("0.5.2"))) {
         const pinCord_one = vendor?.pinLocation?.coordinates[0];
         const pinCord_two = vendor?.pinLocation?.coordinates[1];
         const message = lang[s_v_ln].PROFILE_DETAILS
@@ -70,19 +66,22 @@ export const vendorManageAccount = async (messageData) => {
             await sendVendorTextMessage(phoneNumber, message, "0.5.1");
         }
     }
+
+
     // update profile for vendor
-    else if (["update_profile"].includes(btnReply) && vlastMessage?.startsWith("0.5.1")) {
+    if (["update_profile"].includes(btnReply) && vlastMessage?.startsWith("0.5.1")) {
         const profOverViewList = [{
             title: "Select Category",
             rows: profile_overview.map(update => ({ id: update.id, title: update.title }))
         }];
         await sendVendorListMessage(phoneNumber, lang[s_v_ln].UPDATE_PROFILE_MSG, "Select Category", profOverViewList, "0.5.2");
     }
-    else if (["full_name"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
+
+    if (["full_name"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
         await sendVendorTextMessage(phoneNumber, lang[s_v_ln].ENTER_FULL_NAME, "0.5.2.0");
     }
-    else if (text && vendor?.lastMessage === "0.5.2.0") {
 
+    if (text && vendor?.lastMessage === "0.5.2.0") {
         const isValidName = (text) => /^[A-Za-z\s]+$/.test(text);
 
         if (!isValidName(text)) {
@@ -95,11 +94,13 @@ export const vendorManageAccount = async (messageData) => {
 
         await sendVendorTextMessage(phoneNumber, lang[s_v_ln].FULL_NAME_UPDATED.replace("{vendorFullName}", vendor.vendorFullName), "0.5.2");
     }
+
     // Shop Name
-    else if (["shop_name"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
+    if (["shop_name"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
         await sendVendorTextMessage(phoneNumber, lang[s_v_ln].ENTER_SHOP_NAME, "0.5.2.1");
     }
-    else if (text && vendor?.lastMessage === "0.5.2.1") {
+
+    if (text && vendor?.lastMessage === "0.5.2.1") {
         const isValidShopName = (text) => /^[A-Za-z\s]+$/.test(text);
 
         if (!isValidShopName(text)) {
@@ -111,11 +112,13 @@ export const vendorManageAccount = async (messageData) => {
         await vendor.save();
         await sendVendorTextMessage(phoneNumber, lang[s_v_ln].SHOP_NAME_UPDATED.replace("{shopName}", vendor.shopName), "0.5.2");
     }
+
     // Shop Address
-    else if (["shop_address"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
+    if (["shop_address"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
         await sendVendorTextMessage(phoneNumber, lang[s_v_ln].ENTER_SHOP_ADDRESS, "0.5.2.2");
     }
-    else if (text && vendor?.lastMessage === "0.5.2.2") {
+
+    if (text && vendor?.lastMessage === "0.5.2.2") {
         const isValidAddress = (address) => /^[A-Za-z0-9\s,.-/#]+$/.test(address);
 
         if (!isValidAddress(text)) {
@@ -128,12 +131,15 @@ export const vendorManageAccount = async (messageData) => {
 
         await sendVendorTextMessage(phoneNumber, lang[s_v_ln].SHOP_ADDRESS_UPDATED.replace("{address}", vendor.address), "0.5.2");
     }
+
     // Shop Category
-    else if (["shop_category"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
+    if (["shop_category"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
         const categories = shopCategory.map((category) => `${category.id}. ${category.title}`).join("\n");
         await sendVendorTextMessage(phoneNumber, lang[s_v_ln].SELECT_SHOP_CATEGORY.replace("{categories}", categories), "0.5.2.3");
     }
-    else if (text && vendor?.lastMessage === "0.5.2.3") {
+
+
+    if (text && vendor?.lastMessage === "0.5.2.3") {
         const idList = shopCategory.map((category) => category.id);
         const isValidNumAndComma = (input) => /^[0-9,\s]+$/.test(input);
 
@@ -156,26 +162,31 @@ export const vendorManageAccount = async (messageData) => {
         const showCategory = vendor.shopCategory.map((category, index) => `${index + 1}. ${category}`).join("\n");
         await sendVendorTextMessage(phoneNumber, lang[s_v_ln].CATEGORY_UPDATED.replace("{shopCategory}", showCategory), "0.5.2");
     }
+
     //Shop Location
-    else if (["shop_location"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
-        await sendVendorLocationMessage(phoneNumber, lang[s_v_ln].ENTER_SHOP_LOCATION, "0.5.2.4");
+    if (["shop_location"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
+        await sendVendorTextMessage(phoneNumber, lang[s_v_ln].ENTER_SHOP_LOCATION, "0.5.2.4");
     }
-    else if (vendor?.lastMessage === "0.5.2.4" && location?.latitude && location?.longitude) {
+
+    if (vendor?.lastMessage === "0.5.2.4") {
         if (!location?.latitude || !location?.longitude || text) {
             await sendVendorTextMessage(phoneNumber, lang[s_v_ln].INVALID_LOCATION, "0.5.2.4");
             return;
         }
+
         vendor.pinLocation.coordinates[0] = longitude;
         vendor.pinLocation.coordinates[1] = latitude;
         await vendor.save();
+
         await sendVendorTextMessage(phoneNumber, lang[s_v_ln].SHOP_LOCATION_UPDATED.replace("{latitude}", vendor.pinLocation.coordinates[1]).replace("{longitude}", vendor.pinLocation.coordinates[0]), "0.5.2");
     }
+
     // Shop Image Update
-    else if (["shop_image"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
+    if (["shop_image"].includes(listReply) && vendor?.lastMessage === "0.5.2") {
         await sendVendorTextMessage(phoneNumber, lang[s_v_ln].ENTER_SHOP_IMAGE, "0.5.3.4");
     }
-    else if (!isImageEmpty && vendor?.lastMessage === "0.5.3.4") {
-        console.log("Image update condition True")
+
+    if (image && vendor?.lastMessage === "0.5.3.4") {
         if (!image || text) {
             await sendVendorTextMessage(phoneNumber, lang[s_v_ln].INVALID_IMAGE, "0.5.3.4");
             return;
@@ -202,7 +213,5 @@ export const vendorManageAccount = async (messageData) => {
                 }
             }
         }
-    } else {
-        await topFunctionHandler(messageData, sendVendorButtonMessage, true);
     }
 }

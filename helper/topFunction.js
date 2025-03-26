@@ -20,7 +20,7 @@ export const topFunctionHandler = async (messageData, sendButtonMessage, isValid
         s_u_ln,
         lang
     } = messageData;
-
+    console.log("IsvalidInp" , isValidInput)
     const s_ln = user?.language || vendor?.language || "en"; // Get saved language
     console.log("s_lnnnnnn", s_ln);
     const selLang = lang[s_ln] || lang["en"];
@@ -29,6 +29,7 @@ export const topFunctionHandler = async (messageData, sendButtonMessage, isValid
         console.error(`Invalid language: ${s_ln}, falling back to 'en'`);
     }
     if (isValidInput) {
+        console.log("Once True")
         const langBtn = [
             { id: "en", title: s_ln === "en" ? `${selLang.ENG}` : selLang.ENG },
             { id: "rm", title: s_ln === "rm" ? `${selLang.ROM}` : selLang.ROM },
@@ -40,6 +41,7 @@ export const topFunctionHandler = async (messageData, sendButtonMessage, isValid
 
         await sendButtonMessage(phoneNumber, selLang.INVALID_INP, langBtn);
     } else {
+        console.log("other one")
         const langBtn = [
             { id: "en", title: s_ln === "en" ? `${selLang.ENG}` : selLang.ENG },
             { id: "rm", title: s_ln === "rm" ? `${selLang.ROM}` : selLang.ROM },
