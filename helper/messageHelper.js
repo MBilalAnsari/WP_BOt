@@ -43,13 +43,46 @@ const sendLocationMessage = async (phone, caption, lastMessage) => {
 
     return response;
 };
+// const sendButtonMessage = async (phone, text, buttons, lastMessage, queryMess) => {
+//     const data = {
+//         messaging_product: "whatsapp",
+//         to: phone,
+//         type: "interactive",
+//         interactive: {
+//             type: "button",
+//             action: {
+//                 buttons: buttons.map(btn => ({
+//                     type: "reply",
+//                     reply: {
+//                         id: btn.id,
+//                         title: btn.title
+//                     }
+//                 }))
+//             }
+//         }
+//     };
+
+//     // Agar text empty **nahi** ho tabhi body add karo
+//     if (text && text.trim() !== "") {
+//         data.interactive.body = { text };
+//     }
+
+//     const response = await sendMessage(data);
+
+//     if (lastMessage) await updateLastMessage(phone, lastMessage);
+//     if (queryMess) await updateQueryLastMessage(phone, queryMess);
+
+//     return response;
+// };
+
 const sendButtonMessage = async (phone, text, buttons, lastMessage, queryMess) => {
+
     const data = {
         messaging_product: "whatsapp",
         to: phone,
         type: "interactive",
         interactive: {
-            type: "button", 
+            type: "button",
             body: { text },
             action: {
                 buttons: buttons.map(btn => ({
@@ -62,14 +95,43 @@ const sendButtonMessage = async (phone, text, buttons, lastMessage, queryMess) =
             }
         }
     };
+    const response = await sendMessage(data);
+    if (lastMessage) await updateLastMessage(phone, lastMessage);
+    if (queryMess) await updateQueryLastMessage(phone, queryMess);
+
+    return response;
+
+
+};
+
+const sendImageWithButtons = async (phone, imageUrl, text, buttons, lastMessage, queryMess) => {
+    const data = {
+        messaging_product: "whatsapp",
+        to: phone,
+        type: "interactive",
+        interactive: {
+            type: "button",
+            header: {
+                type: "image",
+                image: { link: imageUrl }
+            },
+            body: { text },
+            action: {
+                buttons: buttons.map(btn => ({
+                    type: "reply",
+                    reply: { id: btn.id, title: btn.title }
+                }))
+            }
+        }
+    };
 
     const response = await sendMessage(data);
-
     if (lastMessage) await updateLastMessage(phone, lastMessage);
     if (queryMess) await updateQueryLastMessage(phone, queryMess);
 
     return response;
 };
+
 
 const sendListMessage = async (to, body, buttonText, sections, lastMessage, queryMess) => {
     const data = {
@@ -78,7 +140,7 @@ const sendListMessage = async (to, body, buttonText, sections, lastMessage, quer
         type: "interactive",
         interactive: {
             type: "list",
-            body: { text: body },
+            body: { text: body || "\u200B" },
             action: {
                 button: buttonText,
                 sections: sections
@@ -138,4 +200,8 @@ const updateQueryLastMessage = async (phoneNumber, queryMess) => {
     }
 };
 
-export { sendTextMessage, sendButtonMessage, sendListMessage, sendPhotoMessage , sendLocationMessage };
+
+
+
+
+export { sendTextMessage, sendButtonMessage, sendListMessage, sendPhotoMessage, sendLocationMessage , sendImageWithButtons};

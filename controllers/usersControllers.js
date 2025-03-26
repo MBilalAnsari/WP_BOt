@@ -19,8 +19,9 @@ export const getUserSearchHistory = async (req, res) => {
   // console.log(userId,"userID")
   try {
     const user = await User.findById(req.user.id, "searchHistory");
-    if (!user) return res.status(404).json({ meesage: "History not found" })
-    res.json({ searchHistory: user.searchHistory });
+    const query = await Query.find({ userId: user._id })
+    if (!user) return res.status(404).json({ message: "History not found" })
+    res.json({ searchHistory: query});
   } catch (error) {
     res.status(500).json({ message: "Error retrieving search history" });
   }
@@ -33,7 +34,7 @@ export const getQueries = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json({ queries: query });
   }
-catch (error) {
+  catch (error) {
     res.status(500).json({ message: "Error retrieving user queries" });
   }
 }
@@ -62,9 +63,9 @@ catch (error) {
 // user signup 
 export const userSignUp = async (req, res) => {
   const { name, email, password, phoneNumber, registrationSource } = req.body;
-  
+
   console.log(name, email, password, phoneNumber, registrationSource);
-  
+
   // if (!email || !password) {
   //   return res.status(400).json({ message: "All fields are required" });
   // }

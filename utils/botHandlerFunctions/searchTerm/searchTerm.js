@@ -1,4 +1,4 @@
-import { sendButtonMessage, sendListMessage, sendLocationMessage, sendPhotoMessage, sendTextMessage } from "../../../helper/messageHelper.js";
+import { sendButtonMessage, sendListMessage, sendLocationMessage, sendPhotoMessage, sendTextMessage, sendImageWithButtons } from "../../../helper/messageHelper.js";
 import User from "../../../models/user.js";
 import Vendor from "../../../models/Vendor.js";
 import Query from "../../../models/Query.js";
@@ -50,7 +50,7 @@ export const searchItem = async (messageData) => {
             product: Product,
             status: "waiting"
         };
-
+        console.log(newQuery, "fist query")
         //  Query create karna
         await Query.create(newQuery);
         console.log(`==>> Query saved for user ID: ${user._id}`);
@@ -60,16 +60,23 @@ export const searchItem = async (messageData) => {
             { id: "yes", title: lang[s_u_ln].YES },
             { id: "no", title: lang[s_u_ln].NO }
         ];
-        await sendButtonMessage(phoneNumber, lang[s_u_ln].IMAGE_Q, imageButtons, "0.1.2", "0.1.1");
+        const queryID = `0.1.2|${queryId}`
+        await sendButtonMessage(phoneNumber, lang[s_u_ln].IMAGE_Q, imageButtons, queryID, "0.1.1");
     }
 
-    else if ((btnReply?.toLowerCase() === "yes" && lastMessage.trim() === "0.1.2") || (btnReply.toLowerCase() === "continue" && user?.queryMess === "0.1.2")) {
+    else if ((btnReply?.toLowerCase() === "yes" && lastMessage?.startsWith("0.1.2")) || (btnReply.toLowerCase() === "continue" && user?.queryMess === "0.1.2")) {
         console.log(lang[s_u_ln].UPLOAD_MSG);
-        await sendTextMessage(phoneNumber, lang[s_u_ln].UPLOAD_MSG, "0.1.3", "0.1.2");
+        const [lastmessage, querId] = lastMessage?.split("|")
+        console.log("lastMesSPlitWlaa", lastmessage, querId)
+
+        const queryId = `0.1.3|${querId}`
+
+        await sendTextMessage(phoneNumber, lang[s_u_ln].UPLOAD_MSG, queryId, "0.1.2");
     }
 
-    else if (imageId && user.lastMessage === "0.1.3") {
-
+    else if (imageId && lastMessage?.startsWith("0.1.3")) {
+        const [lastmessage, queryId] = lastMessage?.split("|")
+        console.log("lastMesSPlitWlaa", lastmessage, queryId)
         const image = imageId
         console.log("imageeee id", image)
         if (image) {
@@ -85,7 +92,7 @@ export const searchItem = async (messageData) => {
                 );
 
                 const updateQuery = await Query.updateOne(
-                    { userId: user._id },
+                    { queryId: queryId },
                     { $set: { shopImg: imageUrl } }
                 );
 
@@ -114,7 +121,7 @@ export const searchItem = async (messageData) => {
         }
     }
 
-    else if ((btnReply?.toLowerCase() === "no" && lastMessage.trim() === "0.1.2") || (btnReply.toLowerCase() === "continue" && user?.queryMess === "0.1.3")) {
+    else if ((btnReply?.toLowerCase() === "no" && lastMessage?.startsWith("0.1.2")) || (btnReply.toLowerCase() === "continue" && user?.queryMess === "0.1.3")) {
         if (categories.length > 3) {
             const categorySections = [{
                 title: lang[s_u_ln].CATEGORY_TITLE,
@@ -191,13 +198,13 @@ export const searchItem = async (messageData) => {
                 let queriesList = unansweredQueries.map(q => `**Product:** ${q.product}`).join("\n");
 
                 //  Vendor ka phone number retrieve karo
-                const vendorData = await Vendor.findOne({ _id: vendor._id }).select("phoneNumber language");
+                const vendorData = await Vendor.findOne({ _id: vendor._id }).select("phoneNumber language shopImg");
                 const vendorPhone = vendorData?.phoneNumber;
                 const vlang = vendorData?.language || "en"; // Default "en" rakho agar language na mile
+                const searchPhoto = vendorData?.shopImg;
 
                 //  Short message send karo
                 const message = lang[vlang].QUERY_RESPONSE.replace("{queriesList}", queriesList);
-                await sendTextMessage(vendorPhone, message);
 
                 //  Individual buttons send karo
                 for (const query of unansweredQueries) {
@@ -205,7 +212,11 @@ export const searchItem = async (messageData) => {
                         { id: `Yes_avl|${query.queryId}`, title: "Yes" },
                         { id: "No_avl", title: "No" }
                     ];
-                    await sendButtonMessage(vendorPhone, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+                    if (searchPhoto) {
+                        await sendImageWithButtons(vendor?.phoneNumber, shopImgavail, message, button, `0.1.7_${query.queryId}`);
+
+                    }
+                    await sendButtonMessage(vendorPhone, message, button, `0.1.7_${query.queryId}`);
                 }
             }
 
@@ -220,6 +231,18 @@ export const searchItem = async (messageData) => {
             }
             if (user?.searchCategory) {
                 searchCriteria.shopCategory = { $in: user.searchCategory };
+            }
+            if (user?._id) {
+                searchCriteria._id = { $ne: user._id.toString() };  // Ensure string match
+            }
+
+            // Extra check agar user aur vendor ka `phoneNumber` ya `userId` same ho
+            if (user?.phoneNumber) {
+                searchCriteria.phoneNumber = { $ne: user.phoneNumber };
+            }
+
+            if (user?.userId) {
+                searchCriteria.userId = { $ne: user.userId };
             }
 
             const matchVendors = await Vendor.find(searchCriteria);
@@ -292,11 +315,9 @@ export const searchItem = async (messageData) => {
                     const isValidLastMessage = validLastMessages.includes(user.lastMessage);
 
                     console.log(lastMessage, "lastmessofrequest")
-
                     if (isValidLastMessage) {
                         for (const query of pendingQueries) {
-                            const vlang = vendor.language
-
+                            const vlang = vendor.language;
                             const button = [
                                 { id: `Yes_avl|${query.queryId}`, title: "Yes" },
                                 { id: "No_avl", title: "No" },
@@ -305,24 +326,24 @@ export const searchItem = async (messageData) => {
 
                             const shopImgavail = query.shopImg;
                             if (shopImgavail) {
-                                await sendPhotoMessage(vendor?.phoneNumber, shopImgavail,);
-                                await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`)
+                                await sendImageWithButtons(vendor?.phoneNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
                             } else {
                                 await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
                             }
-
                         }
                     } else {
                         for (const query of pendingQueries) {
+                            const vlang = vendor.language;
+                            console.log(query, "query")
+                            console.log(query.queryId, "query agai")
                             const button = [
                                 { id: `Yes_avl|${query.queryId}`, title: "Yes" },
                                 { id: "No_avl", title: "No" }
                             ];
-                            const vlang = vendor.language
+
                             const shopImgavail = query.shopImg;
                             if (shopImgavail) {
-                                await sendPhotoMessage(vendor?.phoneNumber, shopImgavail,);
-                                await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`)
+                                await sendImageWithButtons(vendor?.phoneNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
                             } else {
                                 await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
                             }
@@ -384,7 +405,7 @@ export const searchItem = async (messageData) => {
         const userPhone = userFound?.phoneNumber;
         const ulang = userFound.language;
         const buttons = [{ id: `view_details|${recID}`, title: lang[ulang].VIEW_DETAILS }];
-        await sendButtonMessage(userPhone, lang[s_u_ln].SEE_VENDOR_DETAILS, buttons, "0.1.9");
+        await sendButtonMessage(userPhone, lang[ulang].SEE_VENDOR_DETAILS, buttons, "0.1.9");
     }
 
     else if (btnReply.toLowerCase().startsWith("view_details")) {
@@ -424,13 +445,8 @@ export const searchItem = async (messageData) => {
         ];
 
         // Google Maps link array se generate ho raha hai
-        const mapLink = lang[s_v_ln].MAP_LOCATION[1]
-            .replace("{lat}", pinLocation.coordinates[0])
-            .replace("{lng}", pinLocation.coordinates[1]);
-
-        const msg = `🛒 *${lang[s_v_ln].SHOP_NAME}:* ${shopName}\n\n` +
-            `📍 [${lang[s_u_ln].MAP_LOCATION[0]}](${mapLink})\n` +
-            `🏠 *${lang[s_v_ln].SHOP_ADDRESS}:* ${address}`;
+        const mapLink = lang[s_u_ln].MAP_LOCATION[1].replace("{lat}", pinLocation.coordinates[0]).replace("{lng}", pinLocation.coordinates[1]);
+        const msg = ` *${lang[s_u_ln].SHOP_NAME}:* ${shopName}\n\n` + ` [${lang[s_u_ln].MAP_LOCATION[0]}](${mapLink})\n` + ` *${lang[s_u_ln].SHOP_ADDRESS}:* ${address}`;
 
         await sendButtonMessage(userFound.phoneNumber, msg, buttons, "0.1.9.1");
     }
@@ -495,14 +511,14 @@ async function handleVendorResponse(vendorPhone, queryId, response, s_u_ln, lang
         const [yes, recID] = response.split("_")
         console.log("checcccccccccckkkk", yes, recID)
         // id = recID
-        console.log("✅ Processing Vendor Response...", queryId);
+        console.log(" Processing Vendor Response...", queryId);
 
-        // ✅ Pehle check karo ke queryId valid ObjectId hai ya nahi
+        //  Pehle check karo ke queryId valid ObjectId hai ya nahi
         let query;
         if (ObjectId.isValid(queryId)) {
             query = await Query.findOne({ _id: new ObjectId(queryId) });
         } else {
-            query = await Query.findOne({ queryId: queryId }); // ✅ Query by queryId (string)
+            query = await Query.findOne({ queryId: queryId }); // Query by queryId (string)
         }
 
         if (!query) return console.log("❌ Query not found!");
@@ -514,22 +530,9 @@ async function handleVendorResponse(vendorPhone, queryId, response, s_u_ln, lang
         if (!user || !vendor) return console.log("❌ User or Vendor not found!");
 
         if (yes.toLowerCase() === "yes") {
-            console.log("✅ Vendor is Available!");
-            // query.status = "answered";
-            // await query.save();
-            // ✅ Vendor ka last message update karo
-            // const vendor = await Vendor.findOne({ phoneNumber: vendorPhone });
+            console.log(" Vendor is Available!");
             vendor.lastMessage = `0.1.8_${recID}`;
             await vendor.save();
-            // vendor.temObj.messageSendToUsers = user.phoneNumber;
-            // query.mess
-            // console.log(vendor.temObj.messageSendToUsers, "number 2")
-            // user.tempObj.matchVendor = vendor.phoneNumber;
-
-            // await vendor.save();
-            // await user.save();
-
-            // ✅ User se price maangna shuru karo
             const customLastmess = `0.1.8_${recID}`
             await sendTextMessage(vendorPhone, lang[s_v_ln].ASK_PRODUCT_PRICE, customLastmess);
         } else {
@@ -541,16 +544,6 @@ async function handleVendorResponse(vendorPhone, queryId, response, s_u_ln, lang
     }
 }
 
-
-
-async function sendHelperButtons(phoneNumber, message, flowCode) {
-    const buttons = [
-        { id: `yes_price|${flowCode}`, title: "Yes" },
-        { id: `no_price|${flowCode}`, title: "No" },
-        { id: `continue_search|${flowCode}`, title: "Continue" }
-    ];
-    await sendButtonMessage(phoneNumber, message, buttons, flowCode);
-}
 
 
 

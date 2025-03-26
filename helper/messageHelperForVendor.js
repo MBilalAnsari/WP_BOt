@@ -1,5 +1,4 @@
 import { sendMessage } from "../services/whatsappService.js";
-// import User from "../models/user.js";
 import Vendor from "../models/Vendor.js";
 
 const sendTextMessage = async (to, body, lastMessage) => {
@@ -21,7 +20,7 @@ const sendTextMessage = async (to, body, lastMessage) => {
 };
 
 const sendButtonMessage = async (phone, text, buttons, lastMessage) => {
-
+    console.log("📢 Button Message Text:", text); // Debugging
     const data = {
         messaging_product: "whatsapp",
         to: phone,
@@ -69,6 +68,8 @@ const updateLastMessage = async (phoneNumber, lastMessage) => {
 
 // ✅ **Send List Message**
 const sendListMessage = async (to, body, buttonText, sections, lastMessage) => {
+    console.log("📤 Sending List Message...");
+    console.log("📩 Request Data:", { to, body, buttonText, sections, lastMessage });
     const data = {
         messaging_product: "whatsapp",
         to,

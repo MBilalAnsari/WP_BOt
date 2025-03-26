@@ -2,6 +2,7 @@ import Vendor from "../models/Vendor.js";
 import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
 import { getLocationDetails } from "../utils/geolocation/geoLocation.js";
+import Query from "../models/Query.js";
 
 // deleteVendor function to delete a vendor shop
 export const deleteVendor = async (req, res) => {
@@ -27,8 +28,9 @@ export const updateVendor = async (req, res) => {
 export const getHistoryVendor = async (req, res) => {
     try {
         const vendor = await Vendor.findById(req.user.id, "responseHistory");
+        const query = await Query.find({ vendorId: vendor._id })
         if (!vendor) return res.status(404).json({ message: "Vendor not found" });
-        res.json({ responseHistory: vendor.responseHistory });
+        res.json({ responseHistory: query });
     } catch (error) {
         res.status(500).json({ message: "Error retrieving vendor response history" });
     }

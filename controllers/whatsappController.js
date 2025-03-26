@@ -9,6 +9,7 @@ import { vendorManageAccount } from "../utils/botHandlerFunctions/vendorManageAc
 import langData from "../utils/languagesJson/languages.json" with { type: "json" };
 const lang = langData;
 import Query from "../models/Query.js";
+import { topFunctionHandler } from "../helper/topFunction.js";
 
 
 
@@ -62,38 +63,19 @@ export const handleIncomingMessage = async (req, res) => {
         lang: lang
     };
 
-    // console.log("📩 Processed Message PhoneNumber:", messageData.phoneNumber);
-    // console.log("📩 Processed Message text:", messageData.text);
-    console.log("📩 Processed Message image:", messageData.image);
-    // console.log("📩 Processed Message location:", messageData.location);
-    // console.log("📩 Processed Message interactiveID BTN:", messageData.btnReply);
-    // console.log("📩 Processed Message interactiveID LIST:", messageData.listReply);
+    // console.log("Processed Message PhoneNumber:", messageData.phoneNumber);
+    // console.log("Processed Message text:", messageData.text);
+    // console.log("Processed Message image:", messageData.image);
+    // console.log("Processed Message location:", messageData.location);
+    // console.log("Processed Message interactiveID BTN:", messageData.btnReply);
+    console.log("Processed Message interactiveID LIST:", messageData.listReply);
 
 
     let text = messageData.text;
     let vlastMessage = messageData.vlastMessage;
 
-    if (text === "hi") {
-        const s_ln = user?.language || vendor?.language || "en"; // Get saved language
-        console.log("s_lnnnnnn", s_ln);
-
-        if (!lang[s_ln]) {
-            console.error(`Invalid language: ${s_ln}, falling back to 'en'`);
-        }
-
-        const selLang = lang[s_ln] || lang["en"]; 
-
-        const langBtn = [
-            { id: "en", title: s_ln === "en" ? `${selLang.ENG}` : selLang.ENG },
-            { id: "rm", title: s_ln === "rm" ? `${selLang.ROM}` : selLang.ROM },
-            { id: "ur", title: s_ln === "ur" ? `${selLang.URDU}` : selLang.URDU }
-        ];
-
-        // 🛠 Reset Last Message for User and Vendor
-        await User.updateOne({ phoneNumber }, { lastMessage: null });
-        await Vendor.updateOne({ phoneNumber }, { lastMessage: null });
-
-        await sendButtonMessage(phoneNumber, selLang.WLCM, langBtn);
+    if (text.toLowerCase() === "hi" || text.toLowerCase() === "hello") {
+        await topFunctionHandler(messageData , sendButtonMessage , false);
     }
 
 
@@ -160,8 +142,7 @@ export const handleIncomingMessage = async (req, res) => {
             await sendButtonMessage(phoneNumber, lang[s_v_ln].LANGUAGE_SELECTED, mainMenuButtons);
         }
 
-        const hasOnlyVendor = (!user || user?.radius === undefined || user?.radius === null) &&
-            (vendor && Array.isArray(vendor?.shopCategory) && vendor.shopCategory.length > 0);
+        const hasOnlyVendor = (!user || user?.radius === undefined || user?.radius === null) && (vendor && Array.isArray(vendor?.shopCategory) && vendor.shopCategory.length > 0);
 
         if (hasOnlyVendor) {
             const mainMenuButtons = [
