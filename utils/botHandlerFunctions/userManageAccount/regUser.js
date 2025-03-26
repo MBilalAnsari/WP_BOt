@@ -103,6 +103,6 @@ export const regUser = async (messageData) => {
     else if (["user_email_update"].includes(btnReply) && lastMessage?.startsWith("0.5.2")) {
         await sendTextMessage(phoneNumber, lang[selectedLang].PROMPT_NEW_EMAIL);
     } else {
-        await topFunctionHandler(messageData, sendButtonMessage, false)
+        await topFunctionHandler(messageData, sendButtonMessage, true)
     }
 }
