@@ -37,7 +37,7 @@ export const vendorManageAccount = async (messageData) => {
     const { imageId, sha256, mimeType } = image;
 
 
-    if (["account_settings_vendor"].includes(btnReply) || (["manage_acc_vendor"].includes(btnReply) && vlastMessage?.startsWith("0.5.2"))) {
+    if (["manage_acc_vendor"].includes(btnReply) || (["manage_acc_vendor"].includes(btnReply) && vlastMessage?.startsWith("0.5.2"))) {
         const manageAccountButtons = [
             { id: "profile_overview", title: lang[s_v_ln].PROFILE_OVERVIEW },
             { id: "update_profile", title: lang[s_v_ln].UPD_PROFILE }

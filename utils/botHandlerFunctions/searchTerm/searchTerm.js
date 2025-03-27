@@ -5,14 +5,15 @@ import Query from "../../../models/Query.js";
 import mongoose from "mongoose";
 import { query } from "express";
 import { uploadWhatsAppImage } from "../../../helper/uploadBusinessPhoto.js";
+import { sendMessage } from "../../../services/whatsappService.js";
 const { ObjectId } = mongoose.Types;
 
 const categories = [
     { id: "grocery", title: "🛒 Grocery" },
     { id: "clothing", title: "👗👕 Clothing" },
     { id: "electronics", title: "📱💻 Electronics" },
-    { id: "salon_beauty", title: "💇‍♂️💅 Salon & Beauty" },
-    { id: "food_beverages", title: "🍔☕ Food & Beverages" }
+    { id: "salon & Beauty", title: "💇‍♂️💅 Salon & Beauty" },
+    { id: "food & Beverages", title: "🍔☕ Food & Beverages" }
 ];
 
 
@@ -127,14 +128,17 @@ export const searchItem = async (messageData) => {
                 title: lang[s_u_ln].CATEGORY_TITLE,
                 rows: categories.map(cat => ({ id: cat.id, title: cat.title }))
             }];
+            console.log("catefgories", categorySections);
             await sendListMessage(phoneNumber, lang[s_u_ln].CHOOSE_CATEGORY, lang[s_u_ln].CATEGORY_NAME, categorySections, "0.1.4", "0.1.3");
         } else {
             await sendButtonMessage(phoneNumber, lang[s_u_ln].CHOOSE_CATEGORY, categories, "0.1.4", "0.1.3");
         }
     }
 
-    else if ((categories.some(cat => cat.id === listReply) && lastMessage === "0.1.4") || (btnReply.toLowerCase() === "continue" && user?.queryMess === "0.1.4")) {
-        user.searchCategory = listReply;
+    else if ((categories.some(cat => cat.id.toLowerCase().trim() === listReply.toLowerCase().trim()) && lastMessage === "0.1.4") || (btnReply.toLowerCase() === "continue" && user?.queryMess === "0.1.4")) {
+        const selectedCategory = categories.find(cat => cat.id.toLowerCase().trim() === listReply.toLowerCase().trim());
+        console.log("selectedList", selectedCategory.id)
+        user.searchCategory = selectedCategory.id;
         await user.save();
         await sendLocationMessage(phoneNumber, lang[s_u_ln].LOCATION_MSG, "0.1.5", "0.1.4");
     }
@@ -147,34 +151,46 @@ export const searchItem = async (messageData) => {
             await sendTextMessage(phoneNumber, lang[s_u_ln].INVALID_LOCATION, "0.1.5", "0.1.5");
             return;
         }
-
         const { longitude, latitude } = location;
         user.pinLocation = { type: "Point", coordinates: [longitude, latitude] };
         await user.save();
-
         await sendTextMessage(phoneNumber, lang[s_u_ln].ENTER_RADIUS, "0.1.6", "0.1.5");
     }
 
-    else if (lastMessage === "0.1.6" && text) {
-
-        console.log("MDG_PRODUCT", messagingProduct)
-
+    else if (text && lastMessage === "0.1.6") {
         const isValidRadius = (input) => /^[0-9]+$/.test(input) && Number(input) > 0;
-
         if (!isValidRadius(text)) {
             await sendTextMessage(phoneNumber, "❌ Invalid radius! Please enter a valid number in kilometers (e.g., 5, 10, etc.).", "0.1.6");
             return;
         }
+        const radius = text;
+        user.radius = radius;
+        await user.save();
+        const button = [
+            { id: "yes", title: lang[s_u_ln].YES },
+            { id: "no", title: lang[s_u_ln].NO }
+        ];
+        await sendButtonMessage(phoneNumber, "Would you like to ask Prodcut Price?", button, "0.1.7", "0.1.6");
+    }
+
+    else if ((lastMessage === "0.1.7" && btnReply.startsWith("yes")) || btnReply.startsWith("no")) {
+
+        console.log("MDG_PRODUCT", messagingProduct)
+
+        // const isValidRadius = (input) => /^[0-9]+$/.test(input) && Number(input) > 0;
+
+        // if (!isValidRadius(text)) {
+        //     await sendTextMessage(phoneNumber, "❌ Invalid radius! Please enter a valid number in kilometers (e.g., 5, 10, etc.).", "0.1.6");
+        //     return;
+
 
         try {
-            const radius = text;
             const user = await User.findOneAndUpdate(
                 { phoneNumber },
                 {
                     registrationSource: String(messagingProduct),
-                    radius: radius
                 },
-                { upsert: true, new: true }
+                // { upsert: true, new: true }
             );
 
             const userId = user._id;
@@ -183,7 +199,6 @@ export const searchItem = async (messageData) => {
                 { id: "Coins", title: "Coin" }
             ];
             await sendButtonMessage(phoneNumber, `${lang[s_u_ln].MATCH_FOUND} ${profileName}!`, buttons, "0.1.6.1");
-
 
             const unansweredQueries = await Query.find({
                 vendorId: new mongoose.Types.ObjectId(vendor._id),
@@ -207,19 +222,208 @@ export const searchItem = async (messageData) => {
                 const message = lang[vlang].QUERY_RESPONSE.replace("{queriesList}", queriesList);
 
                 //  Individual buttons send karo
+                // for (const query of unansweredQueries) {
+                //     const button = [
+                //         { id: `Yes_avl|${query.queryId}`, title: "Yes" },
+                //         { id: "No_avl", title: "No" }
+                //     ];
+                //     const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
+
+                //     if (shopImgavail) {
+                //         await sendImageWithButtons(vendor?.phoneNumber, shopImgavail, message, button, `0.1.8_${query.queryId}`);
+
+                //     }
+                //     await sendButtonMessage(vendorPhone, message, button, `0.1.8_${query.queryId}`);
+                // }
                 for (const query of unansweredQueries) {
+                    // ✅ Har query ka alag message banayenge
+                    const message = lang[vlang].QUERY_RESPONSE.replace("{queriesList}", `*Product:* ${query.product}`);
+                
                     const button = [
                         { id: `Yes_avl|${query.queryId}`, title: "Yes" },
                         { id: "No_avl", title: "No" }
                     ];
-                    if (searchPhoto) {
-                        await sendImageWithButtons(vendor?.phoneNumber, shopImgavail, message, button, `0.1.7_${query.queryId}`);
-
+                    
+                    const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
+                
+                    if (shopImgavail) {
+                        await sendImageWithButtons(vendor?.phoneNumber, query.shopImg, message, button, `0.1.8_${query.queryId}`);
+                    } else {
+                        await sendButtonMessage(vendorPhone, message, button, `0.1.8_${query.queryId}`);
                     }
-                    await sendButtonMessage(vendorPhone, message, button, `0.1.7_${query.queryId}`);
                 }
+                
             }
+            //         const unansweredQueries = await Query.find({
+            //             vendorId: new mongoose.Types.ObjectId(vendor._id),
+            //             status: "waiting", //  Sirf "waiting" wali queries
+            //             messageSent: true  //  Jo pehle bheji gayi thi
+            //         }).sort({ sentAt: 1 }); //  Purani queries pehle dikhengi
 
+            //         console.log("🚀 Unanswered Queries:", unansweredQueries);
+
+            //         if (unansweredQueries.length > 0) {
+            //             //  Sirf `product` ka naam retrieve karo
+            //             let queriesList = unansweredQueries.map(q => `**Product:** ${q.product}`).join("\n");
+
+            //             //  Vendor ka phone number retrieve karo
+            //             const vendorData = await Vendor.findOne({ _id: vendor._id }).select("phoneNumber language shopImg");
+            //             const vendorPhone = vendorData?.phoneNumber;
+            //             const vlang = vendorData?.language || "en"; // Default "en" rakho agar language na mile
+            //             const searchPhoto = vendorData?.shopImg;
+
+            //             //  Short message send karo
+            //             const message = lang[vlang].QUERY_RESPONSE.replace("{queriesList}", queriesList);
+
+            //             //  Individual buttons send karo
+            //             for (const query of unansweredQueries) {
+            //                 const button = [
+            //                     { id: `Yes_avl|${query.queryId}`, title: "Yes" },
+            //                     { id: "No_avl", title: "No" }
+            //                 ];
+            //                 if (searchPhoto) {
+            //                     await sendImageWithButtons(vendorPhone, searchPhoto, message, button, `0.1.7_${query.queryId}`);
+
+            //                 }
+            //                 await sendButtonMessage(vendorPhone, message, button, `0.1.7_${query.queryId}`);
+            //             }
+            //         }
+
+            //         let searchCriteria = {};
+            //         if (user?.pinLocation?.coordinates[1] && user?.pinLocation?.coordinates[0] && user?.radius) {
+            //             searchCriteria.pinLocation = {
+            //                 $near: {
+            //                     $geometry: { type: "Point", coordinates: [parseFloat(user.pinLocation.coordinates[0]), parseFloat(user.pinLocation.coordinates[1])] },
+            //                     $maxDistance: user.radius * 1000, // Convert km to meters
+            //                 },
+            //             };
+            //         }
+            //         if (user?.searchCategory) {
+            //             searchCriteria.shopCategory = { $in: user.searchCategory };
+            //         }
+            //         if (user?._id) {
+            //             searchCriteria._id = { $ne: user._id.toString() };  // Ensure string match
+            //         }
+
+            //         // Extra check agar user aur vendor ka `phoneNumber` ya `userId` same ho
+            //         if (user?.phoneNumber) {
+            //             searchCriteria.phoneNumber = { $ne: user.phoneNumber };
+            //         }
+
+            //         if (user?.userId) {
+            //             searchCriteria.userId = { $ne: user.userId };
+            //         }
+
+            //         const matchVendors = await Vendor.find(searchCriteria);
+
+            //         if (matchVendors.length > 0) {
+            //             console.log("==>> Match Found!");
+
+            //             let vendorDetails = matchVendors.map(vendor => ({
+            //                 id: vendor._id,
+            //                 phoneNumber: vendor.phoneNumber,
+            //                 language: vendor.language
+            //             }));
+
+            //             console.log(vendorDetails, "vendor details");
+
+            //             // Sare vendors ke queries save aur find karne ke liye promise array
+            //             const queryPromises = vendorDetails.map(async (vendor) => {
+            //                 const shopImgValue = user.shopImg || "default.jpg";
+            //                 const existingQuery = await Query.findOneAndUpdate(
+            //                     {
+            //                         $or: [
+            //                             { vendorId: null }, //Initially vendorId null tha
+            //                             { vendorId: new mongoose.Types.ObjectId(vendor.id) } //Match with updated vendorId
+            //                         ],
+            //                         userId: new mongoose.Types.ObjectId(userId),
+            //                         product: user.currentSearch,
+            //                         shopImg: shopImgValue,
+            //                         status: "waiting"
+            //                     },
+            //                     {
+            //                         $set: {
+            //                             vendorId: new mongoose.Types.ObjectId(vendor.id), //  Update vendorId
+            //                             updatedAt: new Date(),
+            //                             messageSent: true, //Track karo ke message bhej diya gaya
+            //                             sentAt: new Date()  // Track karo ke kab bheja gaya
+            //                         }
+            //                     },
+            //                     // { new: true, upsert: true }
+            //                 );
+
+            //                 if (existingQuery) {
+            //                     console.log(`Skipping duplicate query for Vendor ${vendor.id} - Product: ${user.currentSearch}`);
+            //                     return { vendor, pendingQueries: [existingQuery] }; // Sirf existing query return karo
+            //                 }
+
+            //                 //  Query find karna
+            //                 const pendingQueries = await Query.find({ vendorId: vendor.id, status: "waiting" });
+
+            //                 return { vendor, pendingQueries }; // ==>> Return both vendor info and pending queries
+            //             });
+
+            //             // ==>> Sare queries ka result ek saath wait karna
+            //             const allPendingQueries = await Promise.all(queryPromises);
+
+            //             console.log(allPendingQueries, "queries");
+
+            //             // ==>> Ab sirf un vendors ko message send karo jinke pending queries hain
+            //             for (const { vendor, pendingQueries } of allPendingQueries) {
+            //                 if (!pendingQueries.length) {
+            //                     console.log(`==>> No pending queries for Vendor ID: ${vendor.id}`);
+            //                     continue;
+            //                 }
+
+            //                 const validLastMessages = ["0.1.1", "0.1.2", "0.1.4", "0.1.5", "0.1.8", "0.1.6.1"];
+
+            //                 const user = await User.findOne({ phoneNumber: vendor.phoneNumber });
+
+            //                 console.log("Number bhai", user.lastMessage)
+
+            //                 const isValidLastMessage = validLastMessages.includes(user.lastMessage);
+            //                 if (isValidLastMessage) {
+            //                     for (const query of pendingQueries) {
+            //                         const vlang = vendor.language;
+            //                         const button = [
+            //                             { id: `Yes_avl|${query.queryId}`, title: "Yes" },
+            //                             { id: "No_avl", title: "No" },
+            //                             { id: "continue", title: "Continue" }
+            //                         ];
+
+            //                         const shopImgavail = query?.shopImg;
+            //                         if (shopImgavail) {
+            //                             await sendImageWithButtons(vendor?.phoneNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+            //                         } else {
+            //                             await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+            //                         }
+            //                     }
+            //                 } else {
+            //                     for (const query of pendingQueries) {
+            //                         console.log("jhn message jayga" , vendor.phoneNumber)
+            //                         const vlang = vendor.language;
+            //                         console.log(query, "query")
+            //                         console.log(query.queryId, "query agai")
+            //                         const button = [
+            //                             { id: `Yes_avl|${query.queryId}`, title: "Yes" },
+            //                             { id: "No_avl", title: "No" }
+            //                         ];
+
+            //                         const shopImgavail = query.shopImg;
+            //                         if (shopImgavail) {
+            //                             await sendImageWithButtons(vendor?.phoneNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+            //                         } else {
+            //                             await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+            //                         }
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     } catch (error) {
+            //         console.error("==>> MongoDB Save/Contact Extraction Error:", error);
+            //         await sendTextMessage(phoneNumber, lang[s_u_ln].ERROR_MESSAGE, "error");
+            //     }
+            // }
             let searchCriteria = {};
             if (user?.pinLocation?.coordinates[1] && user?.pinLocation?.coordinates[0] && user?.radius) {
                 searchCriteria.pinLocation = {
@@ -260,7 +464,7 @@ export const searchItem = async (messageData) => {
 
                 // Sare vendors ke queries save aur find karne ke liye promise array
                 const queryPromises = vendorDetails.map(async (vendor) => {
-
+                    const shopImgValue = user.shopImg || "default.jpg";
                     const existingQuery = await Query.findOneAndUpdate(
                         {
                             $or: [
@@ -269,7 +473,7 @@ export const searchItem = async (messageData) => {
                             ],
                             userId: new mongoose.Types.ObjectId(userId),
                             product: user.currentSearch,
-                            shopImg: user.shopImg,
+                            shopImg: shopImgValue,
                             status: "waiting"
                         },
                         {
@@ -280,7 +484,7 @@ export const searchItem = async (messageData) => {
                                 sentAt: new Date()  // 👈 Track karo ke kab bheja gaya
                             }
                         },
-                        { new: true, upsert: true }
+                        // { new: true, upsert: true }
                     );
 
                     if (existingQuery) {
@@ -324,11 +528,11 @@ export const searchItem = async (messageData) => {
                                 { id: "continue", title: "Continue" }
                             ];
 
-                            const shopImgavail = query.shopImg;
+                            const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
                             if (shopImgavail) {
-                                await sendImageWithButtons(vendor?.phoneNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+                                await sendImageWithButtons(vendor?.phoneNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
                             } else {
-                                await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+                                await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
                             }
                         }
                     } else {
@@ -341,11 +545,11 @@ export const searchItem = async (messageData) => {
                                 { id: "No_avl", title: "No" }
                             ];
 
-                            const shopImgavail = query.shopImg;
+                            const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
                             if (shopImgavail) {
-                                await sendImageWithButtons(vendor?.phoneNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+                                await sendImageWithButtons(vendor?.phoneNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
                             } else {
-                                await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+                                await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
                             }
                         }
                     }
@@ -356,7 +560,229 @@ export const searchItem = async (messageData) => {
             await sendTextMessage(phoneNumber, lang[s_u_ln].ERROR_MESSAGE, "error");
         }
     }
+    //         const unansweredQueries = await Query.find({
+    //             vendorId: new mongoose.Types.ObjectId(vendor._id),
+    //             status: "waiting", //  Sirf "waiting" wali queries
+    //             messageSent: true  //  Jo pehle bheji gayi thi
+    //         }).sort({ sentAt: 1 }); //  Purani queries pehle dikhengi
 
+    //         console.log("🚀 Unanswered Queries:", unansweredQueries);
+
+    //         if (unansweredQueries.length > 0) {
+    //             //  Sirf `product` ka naam retrieve karo
+    //             let queriesList = unansweredQueries.map(q => `**Product:** ${q.product}`).join("\n");
+
+    //             //  Vendor ka phone number retrieve karo
+    //             const vendorData = await Vendor.findOne({ _id: vendor._id }).select("phoneNumber language shopImg");
+    //             const vendorPhone = vendorData?.phoneNumber;
+    //             const vlang = vendorData?.language || "en"; // Default "en" rakho agar language na mile
+    //             const searchPhoto = vendorData?.shopImg;
+
+    //             //  Short message send karo
+    //             const message = lang[vlang].QUERY_RESPONSE.replace("{queriesList}", queriesList);
+
+    //             //  Individual buttons send karo
+    //             for (const query of unansweredQueries) {
+    //                 const button = [
+    //                     { id: `Yes_avl|${query.queryId}`, title: "Yes" },
+    //                     { id: "No_avl", title: "No" }
+    //                 ];
+    //                 if (searchPhoto) {
+    //                     await sendImageWithButtons(vendor?.phoneNumber, searchPhoto, message, button, `0.1.8_${query.queryId}`);
+
+    //                 }
+    //                 await sendButtonMessage(vendorPhone, message, button, `0.1.7_${query.queryId}`);
+    //             }
+    //         }
+
+    //         let searchCriteria = {};
+    //         if (user?.pinLocation?.coordinates[1] && user?.pinLocation?.coordinates[0] && user?.radius) {
+    //             searchCriteria.pinLocation = {
+    //                 $near: {
+    //                     $geometry: { type: "Point", coordinates: [parseFloat(user.pinLocation.coordinates[0]), parseFloat(user.pinLocation.coordinates[1])] },
+    //                     $maxDistance: user.radius * 1000, // Convert km to meters
+    //                 },
+    //             };
+    //         }
+    //         if (user?.searchCategory) {
+    //             searchCriteria.shopCategory = { $in: user.searchCategory };
+    //         }
+    //         if (user?._id) {
+    //             searchCriteria._id = { $ne: user._id.toString() };  // Ensure string match
+    //         }
+
+    //         // Extra check agar user aur vendor ka `phoneNumber` ya `userId` same ho
+    //         if (user?.phoneNumber) {
+    //             searchCriteria.phoneNumber = { $ne: user.phoneNumber };
+    //         }
+
+    //         if (user?.userId) {
+    //             searchCriteria.userId = { $ne: user.userId };
+    //         }
+
+    //         const matchVendors = await Vendor.find(searchCriteria);
+
+    //         if (matchVendors.length > 0) {
+    //             console.log("==>> Match Found!");
+
+    //             let vendorDetails = matchVendors.map(vendor => ({
+    //                 id: vendor._id,
+    //                 phoneNumber: vendor.phoneNumber,
+    //                 language: vendor.language
+    //             }));
+
+    //             console.log(vendorDetails, "vendor details");
+
+    //             // Sare vendors ke queries save aur find karne ke liye promise array
+    //             const queryPromises = vendorDetails.map(async (vendor) => {
+    //                 // console.log("queryPromises", queryPromises)
+    //                 const shopImgValue = user.shopImg || "default.jpg";
+    //                 const existingQuery = await Query.findOneAndUpdate(
+    //                     {
+    //                         $or: [
+    //                             { vendorId: null }, // ✅ Initially vendorId null tha
+    //                             { vendorId: new mongoose.Types.ObjectId(vendor.id) } // ✅ Match with updated vendorId
+    //                         ],
+    //                         userId: new mongoose.Types.ObjectId(userId),
+    //                         product: user.currentSearch,
+    //                         shopImg: shopImgValue,
+    //                         status: "waiting"
+    //                     },
+    //                     {
+    //                         $set: {
+    //                             vendorId: new mongoose.Types.ObjectId(vendor.id), // ✅ Update vendorId
+    //                             updatedAt: new Date(),
+    //                             messageSent: true, // Track karo ke message bhej diya gaya
+    //                             sentAt: new Date()  // Track karo ke kab bheja gaya
+    //                         }
+    //                     },
+    //                     { new: true, upsert: true }
+    //                 );
+
+    //                 if (existingQuery) {
+    //                     console.log(`Skipping duplicate query for Vendor ${vendor.id} - Product: ${user.currentSearch}`);
+    //                     return { vendor, pendingQueries: [existingQuery] }; // Sirf existing query return karo
+    //                 }
+
+    //                 //  Query find karna
+    //                 const pendingQueries = await Query.find({ vendorId: vendor.id, status: "waiting" });
+    //                 console.log("pendigQuery", pendingQueries)
+
+    //                 return { vendor, pendingQueries }; // ==>> Return both vendor info and pending queries
+    //             });
+
+    //             // ==>> Sare queries ka result ek saath wait karna
+    //             const allPendingQueries = await Promise.all(queryPromises);
+
+    //             console.log(allPendingQueries, "queries");
+
+    //             // ==>> Ab sirf un vendors ko message send karo jinke pending queries hain
+    //             for (const { vendor, pendingQueries } of allPendingQueries) {
+    //                 if (!pendingQueries.length) {
+    //                     console.log(`==>> No pending queries for Vendor ID: ${vendor.id}`);
+    //                     continue;
+    //                 }
+
+    //                 const validLastMessages = ["0.1.1", "0.1.2", "0.1.4", "0.1.5", "0.1.6", "0.1.7", "0.1.8", "0.1.6.1"];
+
+    //                 const user = await User.findOne({ phoneNumber: vendor.phoneNumber });
+
+    //                 console.log("Number bhai", user.lastMessage)
+
+    //                 const isValidLastMessage = validLastMessages.includes(user.lastMessage);
+
+    //                 console.log(lastMessage, "lastmessofrequest");
+
+    //                 if (btnReply === "yes") {
+    //                     if (isValidLastMessage) {
+    //                         for (const query of pendingQueries) {
+    //                             console.log("jhn messg jayga isvalidMesage", vendor.phoneNumber)
+    //                             const foundedNumber = vendor.phoneNumber;
+    //                             const vlang = vendor.language;
+    //                             const button = [
+    //                                 { id: `Yes_avl|${query.queryId}`, title: "Yes" },
+    //                                 { id: "No_avl", title: "No" },
+    //                                 { id: "continue", title: "Continue" }
+    //                             ];
+    //                             const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
+
+    //                             if (shopImgavail) {
+                                    
+    //                                 console.log("ifimageavailValidlastMess", foundedNumber)
+    //                                 await sendImageWithButtons(foundedNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
+    //                             } else {
+    //                                 console.log("ifimageNOtavailValidlastMess", foundedNumber)
+    //                                 await sendButtonMessage(foundedNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
+    //                             }
+    //                         }
+    //                     } else {
+    //                         for (const query of pendingQueries) {
+    //                             console.log("jhn messg jayga elsewali", vendor.phoneNumber)
+    //                             const foundedNumber = vendor.phoneNumber;
+    //                             const vlang = vendor.language;
+    //                             console.log(query, "query")
+    //                             console.log(query.queryId, "query agai")
+    //                             const button = [
+    //                                 { id: `Yes_avl|${query.queryId}`, title: "Yes" },
+    //                                 { id: "No_avl", title: "No" }
+    //                             ];
+
+    //                             const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
+    //                             if (shopImgavail) {
+    //                                 console.log("ifimageavail", foundedNumber)
+    //                                 await sendImageWithButtons(foundedNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+    //                             } else {
+    //                                 console.log("ifimageNotavail", foundedNumber)
+    //                                 await sendButtonMessage(foundedNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+    //                             }
+    //                         }
+    //                     }
+    //                 } else if (btnReply === "no") {
+    //                     if (isValidLastMessage) {
+    //                         for (const query of pendingQueries) {
+    //                             console.log("jhn messg jayga", vendor.phoneNumber)
+    //                             const foundedNumber = vendor.phoneNumber;
+    //                             const vlang = vendor.language;
+    //                             const button = [
+    //                                 { id: `NoYes_avl|${query.queryId}-${foundedNumber}`, title: "Yes" },
+    //                                 { id: "NoNo_avl|${query.queryId}-${foundedNumber}", title: "No" },
+    //                                 { id: "continue", title: "Continue" }
+    //                             ];
+    //                             const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
+    //                             if (shopImgavail) {
+    //                                 await sendImageWithButtons(vendor?.phoneNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
+    //                             } else {
+    //                                 await sendButtonMessage(vendor?.phoneNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
+    //                             }
+    //                         }
+    //                     } else {
+    //                         for (const query of pendingQueries) {
+    //                             console.log("jhn messg jayga", vendor.phoneNumber)
+    //                             const foundedNumber = vendor.phoneNumber;
+    //                             const vlang = vendor.language;
+    //                             console.log(query, "query")
+    //                             console.log(query.queryId, "query agai")
+    //                             const button = [
+    //                                 { id: `NoYes_avl|${query.queryId}-${foundedNumber}`, title: "Yes" },
+    //                                 { id: "NoNo_avl|${query.queryId}-${foundedNumber}", title: "No" }
+    //                             ];
+    //                             const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
+    //                             if (shopImgavail) {
+    //                                 await sendImageWithButtons(foundedNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
+    //                             } else {
+    //                                 await sendButtonMessage(foundedNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+
+    //             }
+    //         }
+    //     } catch (error) {
+    //         console.error("==>> MongoDB Save/Contact Extraction Error:", error);
+    //         await sendTextMessage(phoneNumber, lang[s_u_ln].ERROR_MESSAGE, "error");
+    //     }
+    // }
     else if (btnReply?.toLowerCase().startsWith("yes_")) {
         console.log("==>> Vendor ne 'Yes' select kiya!");
         const [yes, queryId] = btnReply.split("|");
@@ -376,13 +802,50 @@ export const searchItem = async (messageData) => {
             console.log(expiredQuery, "expired query");
             const vendorId = expiredQuery?.vendorId;
             const vendor = await Vendor.findOne({ _id: vendorId });
-            await sendTextMessage(vendor?.phoneNumber, lang[s_u_ln].QUERY_EXPIRED, "0.1.8");
+            await sendTextMessage(vendor?.phoneNumber, lang[s_u_ln].QUERY_EXPIRED, "0.1.9");
         }
     }
+    else if (btnReply?.toLowerCase().startsWith("noyes_")) {
+        console.log("==>> Vendor ne 'Yes' select kiya!");
+        const [yess, queryId] = btnReply.split("|");
+        console.log(queryId, "agayi beta");
 
-    else if (text && lastMessage?.startsWith("0.1.8")) {
+        const query = await Query.findOne({ queryId: queryId, status: "waiting" });
+        if (query) {
+            console.log(query, "caste query");
+            const UserId = query?.vendorId;
+            const user = await User.findOne({ _id: UserId });
+            const response = `yes_${queryId}`;
+            await sendTextMessage(user?.phoneNumber, "Yes available");
+        }
+        console.log("==>> Vendor ne 'Yes' select kiya!");
+        const [yes, number] = btnReply.split("-");
+       await sendMessage(number , "thanks for submiting response")
+    }
+    else if (btnReply?.toLowerCase().startsWith("nono_")) {
+        console.log("==>> Vendor ne 'Yes' select kiya!");
+        const [yess, queryId] = btnReply.split("|");
+        console.log(queryId, "agayi beta");
+
+        const query = await Query.findOne({ queryId: queryId, status: "waiting" });
+        if (query) {
+            console.log(query, "caste query");
+            const UserId = query?.vendorId;
+            const user = await User.findOne({ _id: UserId });
+            const response = `yes_${queryId}`;
+            await sendTextMessage(user?.phoneNumber, "Not available");
+        }
+        console.log("==>> Vendor ne 'Yes' select kiya!");
+        const [yes, number] = btnReply.split("-");
+       await sendMessage(number , "thanks for submiting response")
+    }
+
+
+    else if (text && lastMessage?.startsWith("0.1.9")) {
         console.log("lastmessssssssage", lastMessage);
         const [lastMessagee, recID] = lastMessage.split("_");
+        // const [lastmess, vendornum] = lastMessage.split("|");
+        // console.log("id , numberofvendor", lastmess, vendornum);
         console.log("rec iDDDDDDDdd", lastMessagee, recID);
 
         const updatedQuery = await Query.findOneAndUpdate(
@@ -406,6 +869,7 @@ export const searchItem = async (messageData) => {
         const ulang = userFound.language;
         const buttons = [{ id: `view_details|${recID}`, title: lang[ulang].VIEW_DETAILS }];
         await sendButtonMessage(userPhone, lang[ulang].SEE_VENDOR_DETAILS, buttons, "0.1.9");
+        // await sendButtonMessage(vendornum, "thanks for submiting req!" , "")
     }
 
     else if (btnReply.toLowerCase().startsWith("view_details")) {
@@ -504,6 +968,7 @@ export const searchItem = async (messageData) => {
         await sendTextMessage(userFound.phoneNumber, `${lang[s_u_ln].VENDOR_PRICE}: ${priceProd}`);
     }
 
+
 }
 
 async function handleVendorResponse(vendorPhone, queryId, response, s_u_ln, lang, s_v_ln,) {
@@ -521,26 +986,26 @@ async function handleVendorResponse(vendorPhone, queryId, response, s_u_ln, lang
             query = await Query.findOne({ queryId: queryId }); // Query by queryId (string)
         }
 
-        if (!query) return console.log("❌ Query not found!");
+        if (!query) return console.log("Query not found!");
 
         const userId = query.userId;
         const vendorId = query.vendorId;
         const user = await User.findOne({ _id: userId });
         const vendor = await Vendor.findOne({ _id: vendorId })
-        if (!user || !vendor) return console.log("❌ User or Vendor not found!");
+        if (!user || !vendor) return console.log("User or Vendor not found!");
 
         if (yes.toLowerCase() === "yes") {
             console.log(" Vendor is Available!");
-            vendor.lastMessage = `0.1.8_${recID}`;
+            vendor.lastMessage = `0.1.9_${recID}`;
             await vendor.save();
-            const customLastmess = `0.1.8_${recID}`
+            const customLastmess = `0.1.9_${recID}`
             await sendTextMessage(vendorPhone, lang[s_v_ln].ASK_PRODUCT_PRICE, customLastmess);
         } else {
-            console.log("❌ Vendor ne 'No' bola!");
+            console.log(" Vendor ne 'No' bola!");
             await sendTextMessage(userPhone, lang[s_u_ln].VENDOR_NOT_AVAILABLE_MSG);
         }
     } catch (error) {
-        console.error("❌ Error in handleVendorResponse:", error);
+        console.error(" Error in handleVendorResponse:", error);
     }
 }
 

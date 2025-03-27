@@ -170,6 +170,7 @@ export const registerVendor = async (messageData, userLanguages) => {
 
 
     else if (vlastMessage === "0.2.7" && btnReply?.toLowerCase() === "confirm") {
+        
         await vendor.save();
         await sendTextMessage(phoneNumber, lang[s_v_ln].SHOP_REGISTER_SUCCESS, "0.2.8");
     }

@@ -11,7 +11,7 @@ const lang = langData;
 import Query from "../models/Query.js";
 import { topFunctionHandler } from "../helper/topFunction.js";
 
-
+ 
 
 
 
@@ -65,17 +65,17 @@ export const handleIncomingMessage = async (req, res) => {
 
     // console.log("📩 Processed Message PhoneNumber:", messageData.phoneNumber);
     // console.log("📩 Processed Message text:", messageData.text);
-    console.log("📩 Processed Message image:", messageData.image);
+    // console.log("📩 Processed Message image:", messageData.image);
     // console.log("📩 Processed Message location:", messageData.location);
     // console.log("📩 Processed Message interactiveID BTN:", messageData.btnReply);
-    // console.log("📩 Processed Message interactiveID LIST:", messageData.listReply);
+    console.log("📩 Processed Message interactiveID LIST:", messageData.listReply);
 
 
     let text = messageData.text;
     let vlastMessage = messageData.vlastMessage;
 
     if (text === "hi") {
-        await topFunctionHandler(messageData, sendButtonMessage);
+        await topFunctionHandler(messageData , sendButtonMessage);
     }
 
 
@@ -149,7 +149,7 @@ export const handleIncomingMessage = async (req, res) => {
                 { id: "search_item", title: lang[s_v_ln].SEARCH_ITEM },
                 { id: "account_settings_vendor", title: lang[s_v_ln].ACCOUNT_SETTINGS }
             ];
-            await sendVendorButtonMessage(phoneNumber, lang[s_v_ln].LANGUAGE_SELECTED, mainMenuButtons , "0.5");
+            await sendVendorButtonMessage(phoneNumber, lang[s_v_ln].LANGUAGE_SELECTED, mainMenuButtons);
         }
     }
 
@@ -158,14 +158,14 @@ export const handleIncomingMessage = async (req, res) => {
     if (["account_settings_both"].includes(btnReply)) {
         console.log("account_settings_both wali condition TRUE");
         const manageAccountButtons = [
-            { id: "manage_acc_user", title: lang[selectedLang].ACC_USER_OPTION },
+            { id: "account_settings_user", title: lang[selectedLang].ACC_USER_OPTION },
             { id: "manage_acc_vendor", title: lang[selectedLang].ACC_VENDOR_OPTION },
         ];
         await sendVendorButtonMessage(phoneNumber, lang[selectedLang].ACC_SETTINGS_SELECT, manageAccountButtons, "0.5");
     }
 
     // For User Manage Account Term
-    if (["manage_acc_user"].includes(btnReply)) {
+    if (["account_settings_user"].includes(btnReply)) {
         console.log("account_settings_user wali condition TRUE");
         const manageAccountButtons = [
             { id: "user_overview", title: lang[selectedLang].USER_ACC_OVERVIEW },
@@ -255,7 +255,7 @@ export const handleIncomingMessage = async (req, res) => {
 
 
     // For User Manage Account
-    if (["account_settings_vendor"].includes(btnReply) || vlastMessage?.startsWith("0.5")) {
+    if ((["manage_acc_vendor"].includes(btnReply) && vlastMessage === "0.5") || vlastMessage?.startsWith("0.5")) {
         console.log("manageAccount wali condition TRUE");
         await vendorManageAccount(messageData);
         console.log("Update Vendor Last Message:", vendor?.lastMessage);
