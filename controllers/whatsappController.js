@@ -67,8 +67,8 @@ export const handleIncomingMessage = async (req, res) => {
     // console.log("📩 Processed Message text:", messageData.text);
     // console.log("📩 Processed Message image:", messageData.image);
     // console.log("📩 Processed Message location:", messageData.location);
-    // console.log("📩 Processed Message interactiveID BTN:", messageData.btnReply);
-    console.log("📩 Processed Message interactiveID LIST:", messageData.listReply);
+    console.log("📩 Processed Message interactiveID BTN:", messageData.btnReply);
+    // console.log("📩 Processed Message interactiveID LIST:", messageData.listReply);
 
 
     let text = messageData.text;

@@ -7,6 +7,7 @@ const querySchema = new mongoose.Schema({
     product: { type: String, required: true },
     shopImg: { type: String, default: "default.jpg" },
     status: { type: String, enum: ["waiting", "expired", "answered"], default: "waiting" },
+    priceAsked: { type: Boolean, default: false }, // Kya price bhi poocha gaya?
     priceByVendor: { type: Number }, // Vendor ka diya hua price yahan store hoga
     contactViewed: { type: Boolean, default: false },
     priceViewed: { type: Boolean, default: false },
