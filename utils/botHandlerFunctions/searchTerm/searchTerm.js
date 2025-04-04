@@ -1,4 +1,4 @@
-import { sendButtonMessage, sendListMessage, sendLocationMessage, sendPhotoMessage, sendTextMessage, sendImageWithButtons } from "../../../helper/messageHelper.js";
+import { sendButtonMessage, sendListMessage, sendLocationMessage, sendPhotoMessage, sendTextMessage, sendImageWithButtons, sendCTAButtonMessage, sendImageWithLink } from "../../../helper/messageHelper.js";
 import User from "../../../models/user.js";
 import Vendor from "../../../models/Vendor.js";
 import Query from "../../../models/Query.js";
@@ -220,14 +220,33 @@ export const searchItem = async (messageData) => {
                         { id: `onlyyes_avl|${query.queryId}`, title: "Yes" },
                         { id: `onlyno_avl|${query.queryId}`, title: "No" }
                     ];
+
                     if (query.priceAsked) {
+                        const createWhatsAppCTAMessage = {
+                            phone: vendorPhone,
+                            imageUrl: query.shopImg,
+                            bodyText: message,
+                            footerText: "Thank you for choosing our service.",
+                            displayText: "Visit Website",
+                            url: `http://localhost:5173/${query.queryId}`,
+                        };
+                        const ctaMessage = {
+                            header: "Response to user",
+                            body: message,
+                            displayText: "Click it",
+                            url: `http://localhost:5173/${query.queryId}`,
+                            title: "Yes"
+                        };
                         console.log(`Price was asked for yes: ${query.priceAsked}`);
                         // Yahan tum priceAsked true hone par kuch bhi logic add kar sakte ho
                         const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
                         if (shopImgavail) {
-                            await sendImageWithButtons(vendor?.phoneNumber, query.shopImg, message, buttonforPrice, `0.1.8_${query.queryId}`);
+                            await sendImageWithLink(createWhatsAppCTAMessage, `0.1.7_${query.queryId}`);
+                            // await sendImageWithButtons(vendor?.phoneNumber, query.shopImg, message, buttonforPrice, `0.1.8_${query.queryId}`);
                         } else {
-                            await sendButtonMessage(vendorPhone, message, buttonforPrice, `0.1.8_${query.queryId}`);
+                            // await sendButtonMessage(vendorPhone, message, buttonforPrice, `0.1.8_${query.queryId}`);
+                            await sendCTAButtonMessage(vendorPhone, ctaMessage, `0.1.8_${query.queryId}`);
+
                         }
                     } else {
                         console.log(`Price was NOT asked for No: ${query.priceAsked}`);
@@ -340,40 +359,76 @@ export const searchItem = async (messageData) => {
                                     { id: "continue", title: "Continue" }
                                 ];
                                 const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
-
+                                const ctaMessage = {
+                                    header: "Response to user",
+                                    body: `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`,
+                                    displayText: "Click it",
+                                    url: `http://localhost:5173/${query.queryId}`,
+                                    title: "Yes"
+                                };
+                                const createWhatsAppCTAMessage = {
+                                    phone: foundedNumber,
+                                    imageUrl: query.shopImg,
+                                    bodyText: `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`,
+                                    footerText: "Thank you for choosing our service.",
+                                    displayText: "Visit Website",
+                                    url: `http://localhost:5173/${query.queryId}`,
+                                };
                                 if (shopImgavail) {
-                                    console.log("ifimageavailValidlastMess", foundedNumber)
-                                    await sendImageWithButtons(foundedNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
+                                    console.log("if imageavailValidlastMess", foundedNumber)
+                                    await sendImageWithLink(createWhatsAppCTAMessage, `0.1.7_${query.queryId}`);
+                                    // await sendImageWithButtons(foundedNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
                                 } else {
-                                    console.log("ifimageNOtavailValidlastMess", foundedNumber)
-                                    await sendButtonMessage(foundedNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
+                                    console.log("if imageNOtavailValidlastMess", foundedNumber)
+                                    // await sendButtonMessage(foundedNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
+                                    await sendCTAButtonMessage(foundedNumber, ctaMessage, `0.1.8_${query.queryId}`);
                                 }
                             }
                         } else {
                             for (const query of pendingQueries) {
-                                console.log("jhn messg jayga agr kisi flow me ho", vendor.phoneNumber)
+                                console.log("Else jhn messg jayga agr kisi flow me ho", vendor.phoneNumber)
                                 const foundedNumber = vendor.phoneNumber;
                                 const vlang = vendor.language;
                                 console.log(query, "query")
                                 console.log(query.queryId, "query agai")
+                                const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
+                                console.log("shopImgavail", query.shopImg)
                                 const button = [
                                     { id: `Yes_avl|${query.queryId}`, title: "Yes" },
                                     { id: `No_avl|${query.queryId}`, title: "No" }
                                 ];
-                                const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
+                                const ctaMessage = {
+                                    header: "Response to user",
+                                    body: `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`,
+                                    displayText: "Click it",
+                                    url: `http://localhost:5173/${query.queryId}`,
+                                    title: "Yes"
+                                };
+                                const createWhatsAppCTAMessage = {
+                                    phone: foundedNumber,
+                                    imageUrl: query.shopImg,
+                                    bodyText: `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`,
+                                    footerText: "Thank you for choosing our service.",
+                                    displayText: "Visit Website",
+                                    url: `http://localhost:5173/${query.queryId}`,
+                                };
+
                                 if (shopImgavail) {
-                                    console.log("ifimageavail", foundedNumber)
-                                    await sendImageWithButtons(foundedNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+                                    console.log("Else ifimageavail", foundedNumber)
+                                    console.log("createWhatsAppCTAMessage", createWhatsAppCTAMessage)
+                                    await sendImageWithLink(createWhatsAppCTAMessage, `0.1.7_${query.queryId}`);
+                                    // await sendImageWithButtons(foundedNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
                                 } else {
-                                    console.log("ifimageNotavail", foundedNumber)
-                                    await sendButtonMessage(foundedNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+                                    console.log("Else ifimageNotavail", foundedNumber)
+                                    // await sendButtonMessage(foundedNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.7_${query.queryId}`);
+                                    await sendCTAButtonMessage(foundedNumber, ctaMessage, `0.1.8_${query.queryId}`);
                                 }
                             }
                         }
                     } else if (btnReply === "nope") {
                         if (isValidLastMessage) {
                             for (const query of pendingQueries) {
-                                console.log("jhn messg jayga agr kisi flow me nhiii ho", vendor.phoneNumber)
+                                console.log("Else IF jhn messg jayga agr kisi flow me nhiii ho", vendor.phoneNumber)
                                 const foundedNumber = vendor.phoneNumber;
                                 const vlang = vendor.language;
                                 console.log(query, "query")
@@ -383,7 +438,6 @@ export const searchItem = async (messageData) => {
                                     { id: `onlyno_avl|${query.queryId}`, title: "No" },
                                     { id: "continue", title: "Continue" }
                                 ];
-
                                 const shopImgavail = query.shopImg && query.shopImg !== "default.jpg";
                                 if (shopImgavail) {
                                     await sendImageWithButtons(foundedNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
@@ -393,7 +447,7 @@ export const searchItem = async (messageData) => {
                             }
                         } else {
                             for (const query of pendingQueries) {
-                                console.log("jhn messg jayga flow me nhii huga", vendor.phoneNumber)
+                                console.log("Else if else jhn messg jayga flow me nhii huga", vendor.phoneNumber)
                                 const foundedNumber = vendor.phoneNumber;
                                 const vlang = vendor.language;
                                 console.log(query, "query")
@@ -406,7 +460,9 @@ export const searchItem = async (messageData) => {
                                 if (shopImgavail) {
                                     await sendImageWithButtons(foundedNumber, shopImgavail, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
                                 } else {
+                                    // await sendCTAButtonMessage(foundedNumber, ctaMess, `0.1.8_${query.queryId}`);
                                     await sendButtonMessage(foundedNumber, `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`, button, `0.1.8_${query.queryId}`);
+
                                 }
                             }
                         }
@@ -471,7 +527,7 @@ export const searchItem = async (messageData) => {
     }
 
 
-    else if (btnReply?.toLowerCase().startsWith("onlyno_avl")|| btnReply?.toLowerCase().startsWith("no_avl") ) {
+    else if (btnReply?.toLowerCase().startsWith("onlyno_avl") || btnReply?.toLowerCase().startsWith("no_avl")) {
         console.log("==>> Price Nh Pochi or Vendor Ny No' select kiya!");
         const [yess, queryId] = btnReply.split("|");
         console.log(queryId, "agayi beta");
@@ -620,7 +676,7 @@ export const searchItem = async (messageData) => {
             await query.save();
         }
 
-        await sendTextMessage(userFound.phoneNumber, `${lang[s_u_ln].VENDOR_PRICE}: ${priceProd}`);
+        await sendTextMessage(userFound.phoneNumber, `${lang[s_u_ln].VENDOR_PRICE}: ${priceProd}`, "");
     }
 }
 

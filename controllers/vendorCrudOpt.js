@@ -3,6 +3,10 @@ import bcrypt from "bcryptjs";
 import jwt from 'jsonwebtoken';
 import { getLocationDetails } from "../utils/geolocation/geoLocation.js";
 import Query from "../models/Query.js";
+import User from "../models/user.js";
+import langData from "../utils/languagesJson/languages.json" with { type: "json" };
+import { sendButtonMessage, sendTextMessage } from "../helper/messageHelper.js";
+const lang = langData;
 
 // deleteVendor function to delete a vendor shop
 export const deleteVendor = async (req, res) => {
@@ -93,4 +97,106 @@ export const vendorSignUp = async (req, res) => {
     } catch (error) {
         res.status(400).json({ error: "Error creating vendor", details: error.message });
     }
+}
+
+
+export const showQuery = async (req, res) => {
+    const { queryId } = req.params
+    console.log("queryId", queryId)
+    if (!queryId) {
+        console.log("Params query Id not found")
+        return
+    }
+
+    const query = await Query.findOne({ queryId: queryId });
+    console.log("query", query)
+    if (!query) {
+        console.log("Query not found")
+        return
+    }
+
+
+    const userId = query?.userId;
+    const vendorId = query?.vendorId
+    console.log("userId", userId)
+
+
+    // user ki info
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+        console.log("User not found")
+    }
+    const userNumber = user?.phoneNumber;
+    console.log("userNumber", userNumber);
+
+
+    // vendor ki info
+    const vendor = await Vendor.findOne({ _id: vendorId });
+    if (!vendor) {
+        console.log("User not found")
+    }
+    const vendorNumber = vendor?.phoneNumber;
+    console.log("vendorNumber", vendorNumber);
+    res.status(200).send(query)
+
+
+
+}
+
+export const sendpricing = async (req, res) => {
+    const { queryId } = req.params
+    const { priceReceived } = req.body
+    console.log("priceRec", priceReceived)
+    console.log("queryId", queryId)
+    if (!queryId) {
+        console.log("Params query Id not found")
+        return
+    }
+
+    const query = await Query.findOne({ queryId: queryId });
+    console.log("query", query)
+    if (!query) {
+        console.log("Query not found")
+        return
+    }
+
+    const userId = query?.userId;
+    const vendorId = query?.vendorId
+
+    // user ki info
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+        console.log("User not found")
+    }
+    const userNumber = user?.phoneNumber;
+    console.log("userNumber", userNumber);
+
+
+    // vendor ki info
+    const vendor = await Vendor.findOne({ _id: vendorId });
+    if (!vendor) {
+        console.log("User not found")
+    }
+    const vendorNumber = vendor?.phoneNumber;
+    console.log("vendorNumber", vendorNumber);
+
+
+    const ulang = user.language;
+
+    const updatedQuery = await Query.findOneAndUpdate(
+        { queryId: queryId, status: "waiting" }, // ✅ Spelling fix
+        { priceByVendor: priceReceived, status: "answered" },
+        { new: true }
+    );
+
+    console.log("check update query hui", updatedQuery)
+    if (!updatedQuery) {
+        return await sendTextMessage(userNumber, lang[ulang].QUERY_NOT_FOUND, "error");
+    }
+
+    const buttons = [{ id: `view_details|${queryId}`, title: lang[ulang].VIEW_DETAILS }];
+    await sendButtonMessage(userNumber, lang[ulang].SEE_VENDOR_DETAILS, buttons);
+    await sendTextMessage(vendorNumber, "thanks for submiting req!")
+    res.status(200).send({ success: true, message: "your price has been sent" })
+
 }
