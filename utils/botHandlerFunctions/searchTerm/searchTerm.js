@@ -228,13 +228,13 @@ export const searchItem = async (messageData) => {
                             bodyText: message,
                             footerText: "Thank you for choosing our service.",
                             displayText: "Visit Website",
-                            url: `http://localhost:5173/${query.queryId}`,
+                            url: `https://wpb-ot-response.vercel.app/${query.queryId}`,
                         };
                         const ctaMessage = {
                             header: "Response to user",
                             body: message,
                             displayText: "Click it",
-                            url: `http://localhost:5173/${query.queryId}`,
+                            url: `https://wpb-ot-response.vercel.app/${query.queryId}`,
                             title: "Yes"
                         };
                         console.log(`Price was asked for yes: ${query.priceAsked}`);
@@ -401,7 +401,7 @@ export const searchItem = async (messageData) => {
                                     header: "Response to user",
                                     body: `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`,
                                     displayText: "Click it",
-                                    url: `http://localhost:5173/${query.queryId}`,
+                                    url: `https://wpb-ot-response.vercel.app/${query.queryId}`,
                                     title: "Yes"
                                 };
                                 const createWhatsAppCTAMessage = {
@@ -410,7 +410,7 @@ export const searchItem = async (messageData) => {
                                     bodyText: `${lang[vlang].USER_SEARCHING} ${query.product}. ${lang[vlang].AVAILABILITY_QUESTION}`,
                                     footerText: "Thank you for choosing our service.",
                                     displayText: "Visit Website",
-                                    url: `http://localhost:5173/${query.queryId}`,
+                                    url: `https://wpb-ot-response.vercel.app/${query.queryId}`,
                                 };
 
                                 if (shopImgavail) {
